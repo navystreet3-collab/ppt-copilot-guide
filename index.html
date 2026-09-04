@@ -130,8 +130,8 @@
 ├── <span class="dir">template/</span>
 │   └── <span class="file">consulting_template.pptx</span>
 ├── <span class="dir">references/</span>
-│   ├── <span class="file">reference_01.pptx</span>
-│   └── <span class="file">reference_01.pdf</span>
+│   ├── <span class="file">official_reference_01.pdf</span>
+│   └── <span class="file">optional_reference_01.pptx</span>
 ├── <span class="dir">design/</span>
 │   ├── <span class="file">reference_analysis.md</span>
 │   └── <span class="file">design_spec.md</span>
@@ -150,7 +150,7 @@
 └── <span class="file">generate.py</span></pre>
         <div class="principles">
           <div class="principle"><strong>templateとreferencesを分ける</strong><span>生成の土台と、分析用の見本を混同しない。</span></div>
-          <div class="principle"><strong>PPTXとPDFを併用する</strong><span>構造の機械分析と見た目の視覚分析を補完する。</span></div>
+          <div class="principle"><strong>PDFを基本にPPTXで補完</strong><span>見た目の視覚分析と、可能な場合の構造分析を組み合わせる。</span></div>
           <div class="principle"><strong>内容とデザインを分ける</strong><span>入力には内容だけを置き、色・書体・配置は基盤側で管理する。</span></div>
           <div class="principle"><strong>標準機能で検証する</strong><span>テストはunittestを使い、追加依存を最小限にする。</span></div>
         </div>
@@ -165,7 +165,7 @@
         <article class="role" data-mark="IGN"><code>.gitignore</code><p>仮想環境、キャッシュ、生成した.pptxをGit対象外にする。</p></article>
         <article class="role" data-mark="COP"><code>.github/copilot-instructions.md</code><p>設計の要点をGitHub Copilotへ常時適用する短いルール。</p></article>
         <article class="role" data-mark="TPL"><code>template/</code><p>スライドマスター、ロゴ、フッターなど生成時の土台。</p></article>
-        <article class="role" data-mark="REF"><code>references/</code><p>同じ資料のPPTXとPDFを置き、構造と見た目を分析。</p></article>
+        <article class="role" data-mark="REF"><code>references/</code><p>参考にするPDFやPPTXを手動で置き、構造と見た目を分析。</p></article>
         <article class="role" data-mark="IN"><code>inputs/slides.json</code><p>文章、数値、画像パス、layout_idなど内容だけを記述。</p></article>
         <article class="role" data-mark="UI"><code>pptxgen/theme.py</code><p>色、書体、文字サイズ、間隔、semantic styleを一元管理。</p></article>
         <article class="role" data-mark="CMP"><code>pptxgen/components.py</code><p>指定領域へ統一された部品を描画し、低レベルAPIを隠蔽。</p></article>
@@ -175,8 +175,27 @@
       </div>
     </section>
 
+    <section aria-labelledby="reference-links-title">
+      <div class="section-head"><div class="num">03</div><div><h2 id="reference-links-title">参考資料ダウンロード</h2><p>三菱電機の公式PDFです。必要な資料を手動でダウンロードし、実行前にreferences/へ格納してください。</p></div></div>
+      <div class="roles">
+        <article class="role" data-mark="01"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0529_co1.pdf" target="_blank" rel="noopener noreferrer"><code>IR Day 2026｜新中期経営戦略</code></a><p>全体構成、要約、戦略図、KPIの主な基準。</p></article>
+        <article class="role" data-mark="02"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0529_co2.pdf" target="_blank" rel="noopener noreferrer"><code>IR Day 2026｜インフラ</code></a><p>事業構造、複数領域、ロードマップの参考。</p></article>
+        <article class="role" data-mark="03"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0529_co3.pdf" target="_blank" rel="noopener noreferrer"><code>IR Day 2026｜FAシステム</code></a><p>技術・市場説明、プロセス、数値強調の参考。</p></article>
+        <article class="role" data-mark="04"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0529_co4.pdf" target="_blank" rel="noopener noreferrer"><code>IR Day 2026｜ライフ</code></a><p>事業比較、地域展開、ポートフォリオの参考。</p></article>
+        <article class="role" data-mark="05"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0529_co5.pdf" target="_blank" rel="noopener noreferrer"><code>IR Day 2026｜半導体・デバイス</code></a><p>製品群、用途分類、チャート表現の参考。</p></article>
+        <article class="role" data-mark="06"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0731_co2.pdf" target="_blank" rel="noopener noreferrer"><code>2027年3月期 第1四半期決算</code></a><p>表、グラフ、ウォーターフォール、業績要約の参考。</p></article>
+        <article class="role" data-mark="07"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2026/pdf/0820_ei2.pdf" target="_blank" rel="noopener noreferrer"><code>スマートエナジー領域の強化</code></a><p>買収説明、事業シナジー、成長戦略の参考。</p></article>
+        <article class="role" data-mark="08"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2025/pdf/0115-1.pdf" target="_blank" rel="noopener noreferrer"><code>三菱電機の研究開発戦略</code></a><p>技術テーマ、概念図、研究ロードマップの参考。</p></article>
+        <article class="role" data-mark="09"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2024/pdf/1216-a1.pdf" target="_blank" rel="noopener noreferrer"><code>サステナビリティ｜トレード・オン</code></a><p>価値創出、マテリアリティ、関係図の参考。</p></article>
+        <article class="role" data-mark="10"><a href="https://www.mitsubishielectric.co.jp/ja/pr/2024/pdf/1216-a2.pdf" target="_blank" rel="noopener noreferrer"><code>三菱電機の人的資本経営</code></a><p>KPI、施策体系、Before / Afterの参考。</p></article>
+        <article class="role" data-mark="＋"><a href="https://www.mitsubishielectric.co.jp/investors/data/integrated-report/pdf/2025/integrated-report2025-jp.pdf" target="_blank" rel="noopener noreferrer"><code>統合報告書2025</code></a><p>ブランド表現と図解の補助資料。冊子レイアウトの直用は避ける。</p></article>
+        <article class="role" data-mark="↗"><a href="https://www.mitsubishielectric.co.jp/investors/data/management-report/" target="_blank" rel="noopener noreferrer"><code>IR Day公式一覧</code></a><p>リンク切れや更新時に後継資料を確認するための一覧。</p></article>
+      </div>
+      <p class="note"><strong>推奨:</strong> まず01〜06をダウンロードし、余裕があれば07〜10を追加してください。公開資料はPDFのみでも構いません。手元に参考PPTXがある場合は、同じreferences/へ追加すると座標やフォントサイズの機械分析もできます。</p>
+    </section>
+
     <section aria-labelledby="prompt-title">
-      <div class="section-head"><div class="num">03</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>参考資料を分析し、再利用可能なデザインシステムとレイアウト基盤を構築するための実践版です。</p></div></div>
+      <div class="section-head"><div class="num">04</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>参考資料を分析し、再利用可能なデザインシステムとレイアウト基盤を構築するための実践版です。</p></div></div>
       <div class="prompt-shell">
         <div class="prompt-bar"><span>copilot-foundation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt()">全文をコピー</button></div>
         <pre class="prompt" id="prompt">あなたは、python-pptxを使って高品質なPowerPoint資料を自動生成するための「PowerPoint生成基盤」を構築するエンジニアです。
@@ -223,8 +242,8 @@ ppt-generator/
 ├── template/
 │   └── consulting_template.pptx
 ├── references/
-│   ├── reference_01.pptx
-│   └── reference_01.pdf
+│   ├── reference_01.pdf
+│   └── optional_reference_01.pptx
 ├── design/
 │   ├── reference_analysis.md
 │   └── design_spec.md
@@ -264,18 +283,18 @@ PyYAMLやPillowを前提として追加しないでください。入力は標�
 
 ## templateとreferencesの役割分担
 
+- このプロンプトを実行する前にreferences/を作成し、ページ上部の「参考資料ダウンロード」から選んだ公式PDFを手動で格納してください。
+- まずIR Day 2026の新中期経営戦略を含む6資料以上を入れることを推奨します。資料が多い場合も、単一資料や特殊な1ページだけを基準にしないでください。
+- 公開資料はPDFだけでも構いません。CopilotではPDFの見た目、情報密度、視線誘導、カード、表、グラフなどを視覚分析してください。
+- 手元に同内容または参考になるPPTXがある場合はreferences/へ追加し、python-pptxで色、フォントサイズ、座標、図形サイズを機械分析してください。
 - template/consulting_template.pptxは、実際の生成時に読み込む土台です。スライドサイズ、マスター、既存レイアウト、ロゴ、フッターなどを可能な範囲で継承してください。
-- references/はデザイン分析用の見本です。生成ベースとして直接使わず、複数資料から再利用可能な共通ルールを抽出してください。
-- 同じ参考資料をPPTXとPDFのペアで置く運用を基本とします。
-- PPTXはpython-pptxで色、フォントサイズ、座標、図形サイズなどを機械分析します。
-- PDFはCopilot Chatへプロンプトと一緒に添付し、見た目、情報密度、視線誘導、カード表現などを視覚分析します。
-- PDFだけの模写、PPTXだけの数値コピーは行わず、両方の結果をdesign/reference_analysis.mdへ統合してください。
+- references/は分析用の見本であり、生成ベースとして直接使用しません。資料本文、図、写真、ロゴを転載せず、抽象化したデザインルールとレイアウトパターンだけを利用してください。
 
-templateとreferencesが矛盾する場合は、templateのブランド必須要素を優先し、referenceの汎用的なレイアウト表現を組み合わせてください。重大な矛盾は勝手に決めず、差異と推奨案を示してください。
+templateとreferencesが矛盾する場合は、templateのブランド必須要素を優先し、referencesの汎用的なレイアウト表現を組み合わせてください。重大な矛盾は勝手に決めず、差異と推奨案を示してください。PDFを視覚的に確認できない場合は、その制約を明記し、確認したと仮定して進めないでください。
 
 ## 参考スライドの分析
 
-references/に格納したPPTXと同内容のPDFを今回のデザイン基準として利用してください。実装を始める前に、PPTXの機械分析とPDFの視覚分析を行い、以下を整理してください。
+references/に手動で格納したPDFとPPTXを今回のデザイン基準として利用してください。実装を始める前に、複数資料の代表ページを比較し、以下を整理してください。
 
 ### デザインルール
 
@@ -361,7 +380,7 @@ theme.pyで以下の色を一元管理してください。
 - VERY_LIGHT_GRAY: #F7F7F7
 - BACKGROUND: #FFFFFF
 
-実際のtemplateまたはreferencesに、より正式なブランドカラー指定がある場合は、その値を優先し、採用値をdesign/design_spec.mdへ記録してください。
+実際のtemplateまたはreferences内の三菱電機公式資料に、より正式なブランドカラー指定がある場合は、その値を優先し、採用値をdesign/design_spec.mdへ記録してください。
 
 ### semantic style
 
@@ -437,7 +456,7 @@ validatorの実装に過度な時間を使わず、まず生成品質を優先�
 
 template/consulting_template.pptxが存在する場合は、それをベースに生成してください。既存テンプレートから、スライドサイズ、スライドマスター、フォント、基本レイアウト、ロゴ、フッターなど、利用可能なものはできるだけ活用してください。
 
-templateは実際の生成ベース、referencesは分析用の見本です。既存テンプレートと参考スライドのデザインが矛盾する場合は勝手に決定せず、相違点と推奨案を提示して確認を求めてください。決定した優先順位と理由はdesign/reference_analysis.mdとREADME.mdに記録してください。
+templateは実際の生成ベース、referencesはデザイン分析用の見本です。既存テンプレートと参考資料のデザインが矛盾する場合は勝手に決定せず、相違点と推奨案を提示して確認を求めてください。決定した優先順位と理由はdesign/reference_analysis.mdとREADME.mdに記録してください。templateが存在しない場合は、白紙の16:9プレゼンテーションから生成してください。
 
 ## 実装ルール
 
@@ -459,7 +478,7 @@ templateは実際の生成ベース、referencesは分析用の見本です。�
 
 ## design_spec.md
 
-design/design_spec.mdを設計上の正とし、architecture、theme/components/layoutsの責務、デザイントークン、三菱電機スタンダードのカラー、semantic style、typography、spacing、7種類のlayout、各layoutの情報量上限、text overflow方針、template/referencesの優先順位、validator方針を記録してください。
+design/design_spec.mdを設計上の正とし、architecture、theme/components/layoutsの責務、デザイントークン、三菱電機スタンダードのカラー、semantic style、typography、spacing、7種類のlayout、各layoutの情報量上限、text overflow方針、templateとreferencesの優先順位、validator方針を記録してください。
 
 ## .github/copilot-instructions.md
 
@@ -477,10 +496,10 @@ design/design_spec.mdを設計上の正とし、architecture、theme/components/
 ## 作業手順
 
 ### Step 1
-現在のリポジトリとreferences/、template/を確認する。
+現在のリポジトリ、template/、references/を確認する。references/が存在しない、または空の場合は実装を始めず、参考資料の手動配置を依頼する。
 
 ### Step 2
-tools/analyze_references.pyを最小限の依存で用意し、referencesのPPTXとPDF、templateを分析する。この時点では大量のコードを書かない。
+references/のPDFを視覚分析し、PPTXがある場合はtools/analyze_references.pyからpython-pptxで機械分析する。デザインルール、レイアウトパターン、共通部品を整理し、この時点では大量のコードを書かない。
 
 ### Step 3
 分析結果をdesign/reference_analysis.mdへまとめ、今回の仕様と統合したdesign/design_spec.mdを作成する。
@@ -520,6 +539,7 @@ README.mdと.github/copilot-instructions.mdを作成または更新し、フォ�
 - 生成物がPowerPoint上で個別編集できる
 - slides.jsonに色、フォント、座標が含まれていない
 - design/design_spec.mdとdesign/reference_analysis.mdが存在する
+- references/に置いた複数資料の分析結果と、確認できなかった制約がreference_analysis.mdに記録されている
 - .github/copilot-instructions.mdが存在する
 - README.mdの手順だけで環境構築、生成、検証を再現できる
 
@@ -531,7 +551,7 @@ README.mdと.github/copilot-instructions.mdを作成または更新し、フォ�
 
 参考資料の分析結果、採用したフォルダ構成、レイアウト一覧、デザインルール、依存関係、テスト結果を記録し、生成、検証、READMEと常設Copilotルールの整備まで完了してください。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> references/へ同じ資料のPPTXとPDFを置き、Copilot ChatにはPDFを添付して全文を貼り付けます。初期構築後は.github/copilot-instructions.mdが常設ルールとして機能します。</p>
+      <p class="note"><strong>使い方:</strong> 上のリンクから参考PDFを手動でダウンロードし、references/へ格納してからCopilot Chatへ全文を貼り付けます。初期構築後は.github/copilot-instructions.mdが常設ルールとして機能します。</p>
     </section>
   </main>
 
