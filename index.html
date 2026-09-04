@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GitHub Copilotとpython-pptxでPowerPoint生成プロジェクトを始めるための1ページガイド">
+  <title>python-pptx × GitHub Copilot｜プロジェクト初期構築ガイド</title>
+  <style>
+    :root {
+      --ink: #14213d;
+      --muted: #55627a;
+      --paper: #f7f9fc;
+      --card: #ffffff;
+      --line: #dce3ee;
+      --blue: #2563eb;
+      --blue-dark: #1746a2;
+      --cyan: #06b6d4;
+      --violet: #7c3aed;
+      --shadow: 0 18px 50px rgba(20, 33, 61, .09);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(37, 99, 235, .12), transparent 31rem),
+        radial-gradient(circle at 95% 18%, rgba(124, 58, 237, .10), transparent 28rem),
+        var(--paper);
+      font-family: Inter, "Hiragino Sans", "Yu Gothic", Meiryo, system-ui, sans-serif;
+      line-height: 1.75;
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+
+    .hero { padding: 72px 0 52px; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 7px 12px;
+      border: 1px solid rgba(37, 99, 235, .22);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      color: var(--blue-dark);
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 5px rgba(6,182,212,.12); }
+    h1 { margin: 0; max-width: 880px; font-size: clamp(2.25rem, 6vw, 4.85rem); line-height: 1.08; letter-spacing: -.045em; }
+    .gradient { background: linear-gradient(100deg, var(--blue), var(--violet)); -webkit-background-clip: text; color: transparent; }
+    .lead { max-width: 760px; margin: 24px 0 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .chip { padding: 7px 11px; border-radius: 10px; background: #eaf0ff; color: #214caa; font: 700 .8rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    main { padding-bottom: 80px; }
+    section { margin-top: 28px; padding: clamp(24px, 5vw, 44px); border: 1px solid rgba(220,227,238,.9); border-radius: var(--radius); background: rgba(255,255,255,.88); box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+    .section-head { display: grid; grid-template-columns: 54px 1fr; gap: 16px; align-items: start; margin-bottom: 28px; }
+    .num { display: grid; place-items: center; width: 54px; aspect-ratio: 1; border-radius: 16px; color: white; background: linear-gradient(135deg, var(--blue), var(--violet)); font-weight: 900; }
+    h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.15rem); line-height: 1.25; letter-spacing: -.02em; }
+    .section-head p { margin: 7px 0 0; color: var(--muted); }
+
+    .structure { display: grid; grid-template-columns: minmax(0, 1fr) minmax(270px, .8fr); gap: 24px; }
+    pre { margin: 0; overflow: auto; border-radius: 16px; background: #111827; color: #e5ecff; font: 500 .88rem/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .tree { padding: 24px; }
+    .tree .dir { color: #7dd3fc; font-weight: 700; }
+    .tree .file { color: #c4b5fd; }
+    .principles { display: grid; gap: 12px; }
+    .principle { padding: 17px 18px; border: 1px solid var(--line); border-radius: 15px; background: #fbfcff; }
+    .principle strong { display: block; margin-bottom: 4px; color: var(--blue-dark); }
+    .principle span { color: var(--muted); font-size: .92rem; }
+
+    .roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .role { position: relative; padding: 20px 20px 20px 54px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .role::before { content: attr(data-mark); position: absolute; top: 19px; left: 18px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: #edf2ff; color: var(--blue); font-size: .72rem; font-weight: 900; }
+    .role code { color: #243e89; font-weight: 800; }
+    .role p { margin: 6px 0 0; color: var(--muted); font-size: .92rem; }
+
+    .prompt-shell { overflow: hidden; border-radius: 18px; background: #111827; }
+    .prompt-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 16px; border-bottom: 1px solid #2c374c; color: #aebbd3; font: 700 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .copy { border: 1px solid #536079; border-radius: 9px; padding: 7px 11px; background: #202b40; color: #fff; cursor: pointer; }
+    .copy:hover { background: #2d3b55; }
+    .copy:focus-visible { outline: 3px solid #67e8f9; outline-offset: 2px; }
+    .prompt { padding: 22px; white-space: pre-wrap; color: #e6ebf5; }
+    .note { margin: 16px 0 0; color: var(--muted); font-size: .9rem; }
+    .note strong { color: var(--ink); }
+    footer { padding: 8px 0 50px; color: var(--muted); text-align: center; font-size: .82rem; }
+
+    @media (max-width: 760px) {
+      .hero { padding-top: 48px; }
+      .structure, .roles { grid-template-columns: 1fr; }
+      .section-head { grid-template-columns: 44px 1fr; }
+      .num { width: 44px; border-radius: 13px; }
+      section { padding: 24px 18px; }
+      .wrap { width: min(100% - 24px, 1120px); }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="eyebrow"><span class="dot"></span>Project Starter Guide</div>
+      <h1>python-pptx × <span class="gradient">GitHub Copilot</span></h1>
+      <p class="lead">PowerPoint自動生成を、あとから直しやすく・再利用しやすく始めるための最小構成。フォルダ設計、ファイルの責務、Copilotへの初期指示を1ページにまとめました。</p>
+      <div class="chips"><span class="chip">Python 3.11+</span><span class="chip">python-pptx</span><span class="chip">GitHub Copilot</span><span class="chip">16:9 slides</span></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section aria-labelledby="structure-title">
+      <div class="section-head"><div class="num">01</div><div><h2 id="structure-title">推奨フォルダ構成</h2><p>入力素材、デザイン定義、生成処理、完成物を分離すると、スライド追加やテーマ変更が安全になります。</p></div></div>
+      <div class="structure">
+        <pre class="tree" aria-label="推奨フォルダツリー"><span class="dir">ppt-project/</span>
+├── <span class="file">README.md</span>
+├── <span class="file">requirements.txt</span>
+├── <span class="file">.gitignore</span>
+├── <span class="dir">assets/</span>
+│   ├── <span class="dir">images/</span>
+│   ├── <span class="dir">icons/</span>
+│   └── <span class="dir">fonts/</span>
+├── <span class="dir">data/</span>
+│   └── <span class="file">content.yaml</span>
+├── <span class="dir">src/</span>
+│   ├── <span class="file">main.py</span>
+│   ├── <span class="file">theme.py</span>
+│   ├── <span class="file">layouts.py</span>
+│   └── <span class="file">utils.py</span>
+├── <span class="dir">tests/</span>
+│   └── <span class="file">test_slides.py</span>
+└── <span class="dir">output/</span>
+    └── <span class="file">.gitkeep</span></pre>
+        <div class="principles">
+          <div class="principle"><strong>素材とコードを分ける</strong><span>画像差し替えで生成ロジックを壊さない。</span></div>
+          <div class="principle"><strong>内容と見た目を分ける</strong><span>YAMLとtheme.pyを独立させ、再利用性を高める。</span></div>
+          <div class="principle"><strong>完成物はGit管理しない</strong><span>output/の.pptxは原則.gitignoreへ。</span></div>
+          <div class="principle"><strong>生成結果を検証する</strong><span>枚数、タイトル、必須要素をテストで確認する。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="roles-title">
+      <div class="section-head"><div class="num">02</div><div><h2 id="roles-title">各ファイルの役割</h2><p>1ファイル1責務を基本に、Copilotが変更範囲を判断しやすい境界を作ります。</p></div></div>
+      <div class="roles">
+        <article class="role" data-mark="MD"><code>README.md</code><p>セットアップ、実行方法、設計方針、成果物の場所を記載。</p></article>
+        <article class="role" data-mark="PKG"><code>requirements.txt</code><p>python-pptx、PyYAML、Pillowなど依存パッケージを固定。</p></article>
+        <article class="role" data-mark="IGN"><code>.gitignore</code><p>仮想環境、キャッシュ、生成した.pptxをGit対象外にする。</p></article>
+        <article class="role" data-mark="AST"><code>assets/</code><p>ロゴ、写真、アイコン、必要なフォントなどの素材置き場。</p></article>
+        <article class="role" data-mark="YML"><code>data/content.yaml</code><p>タイトルや本文、注記など、スライド内容をコードから分離。</p></article>
+        <article class="role" data-mark="RUN"><code>src/main.py</code><p>データを読み込み、各レイアウトを呼び出して.pptxを生成。</p></article>
+        <article class="role" data-mark="UI"><code>src/theme.py</code><p>色、書体、余白、サイズなど共通デザイントークンを定義。</p></article>
+        <article class="role" data-mark="LYT"><code>src/layouts.py</code><p>表紙、章扉、本文、比較など再利用可能なレイアウト関数。</p></article>
+        <article class="role" data-mark="UTL"><code>src/utils.py</code><p>画像配置、文字量調整、単位変換など共通処理を集約。</p></article>
+        <article class="role" data-mark="TST"><code>tests/test_slides.py</code><p>生成成功、スライド枚数、必須タイトルなどを自動確認。</p></article>
+        <article class="role" data-mark="OUT"><code>output/</code><p>生成したPowerPointを置く場所。.gitkeepのみ管理対象。</p></article>
+      </div>
+    </section>
+
+    <section aria-labelledby="prompt-title">
+      <div class="section-head"><div class="num">03</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>リポジトリ直下でCopilot Chatを開き、以下をそのまま貼り付けます。</p></div></div>
+      <div class="prompt-shell">
+        <div class="prompt-bar"><span>copilot-initial-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt()">コピー</button></div>
+        <pre class="prompt" id="prompt">あなたは、python-pptxを使ったPowerPoint自動生成プロジェクトの設計・実装担当です。
+
+このリポジトリに、次の方針で初期構成を作成してください。
+
+【目的】
+- 16:9のPowerPointをPythonで再現性高く生成する
+- 内容・デザイン・レイアウト・素材・出力を分離する
+- 後からスライド種別やテーマを追加しやすくする
+
+【作成する構成】
+- README.md
+- requirements.txt
+- .gitignore
+- assets/images/、assets/icons/、assets/fonts/
+- data/content.yaml
+- src/main.py、src/theme.py、src/layouts.py、src/utils.py
+- tests/test_slides.py
+- output/.gitkeep
+
+【実装要件】
+1. python-pptx、PyYAML、Pillowを使用する
+2. theme.pyに色・フォント・余白・サイズを定数としてまとめる
+3. layouts.pyに表紙、タイトル＋本文、2カラムの3種類を関数として実装する
+4. content.yamlのサンプル内容から3枚のスライドを生成する
+5. main.pyは「python -m src.main」で実行でき、output/sample.pptxを出力する
+6. 画像は縦横比を保って配置し、文字が枠からはみ出しにくい処理をutils.pyに用意する
+7. testsで生成ファイルの存在、スライド枚数、各スライドのタイトルを確認する
+8. READMEに環境構築、実行、テスト、構成説明を日本語で記載する
+9. .gitignoreで.venv、__pycache__、output/*.pptxを除外する
+
+まず実装計画を短く提示し、その後に必要なファイルを作成してください。曖昧な点は勝手に複雑化せず、保守しやすい最小構成を優先してください。</pre>
+      </div>
+      <p class="note"><strong>使い方:</strong> 生成後は、PowerPointを開いて文字切れ・画像比率・フォント置換を目視確認してください。python-pptxは編集可能な.pptx生成に向きますが、最終的な見栄えの確認はPowerPoint本体で行うのが確実です。</p>
+    </section>
+  </main>
+
+  <footer class="wrap">Built for maintainable presentation automation.</footer>
+  <script>
+    async function copyPrompt() {
+      const button = document.querySelector('.copy');
+      try {
+        await navigator.clipboard.writeText(document.getElementById('prompt').innerText);
+        button.textContent = 'コピー済み';
+        setTimeout(() => button.textContent = 'コピー', 1800);
+      } catch (_) {
+        button.textContent = '選択してコピー';
+      }
+    }
+  </script>
+</body>
+</html>
