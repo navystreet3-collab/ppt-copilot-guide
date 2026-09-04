@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="GitHub Copilotとpython-pptxでPowerPoint生成プロジェクトを始めるための1ページガイド">
-  <title>python-pptx × GitHub Copilot｜プロジェクト初期構築ガイド</title>
+  <meta name="description" content="GitHub CopilotでPowerPoint・Excel生成プロジェクトを始めるための1ページガイド">
+  <title>PowerPoint・Excel × GitHub Copilot｜生成基盤ガイド</title>
   <style>
     :root {
       --ink: #14213d;
@@ -59,8 +59,16 @@
     .lead { max-width: 760px; margin: 24px 0 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.18rem); }
     .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
     .chip { padding: 7px 11px; border-radius: 10px; background: #eaf0ff; color: #214caa; font: 700 .8rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .jump-nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .jump-nav a { padding: 10px 15px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.9); color: var(--blue-dark); font-weight: 800; text-decoration: none; }
+    .jump-nav a:hover { border-color: rgba(37,99,235,.42); background: #fff; }
 
     main { padding-bottom: 80px; }
+    .product-heading { scroll-margin-top: 24px; margin: 54px 0 2px; padding: 0 4px; }
+    .product-heading:first-child { margin-top: 0; }
+    .product-heading .label { display: inline-block; margin-bottom: 8px; color: var(--blue-dark); font-size: .78rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .product-heading h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+    .product-heading p { max-width: 780px; margin: 10px 0 0; color: var(--muted); }
     section { margin-top: 28px; padding: clamp(24px, 5vw, 44px); border: 1px solid rgba(220,227,238,.9); border-radius: var(--radius); background: rgba(255,255,255,.88); box-shadow: var(--shadow); backdrop-filter: blur(10px); }
     .section-head { display: grid; grid-template-columns: 54px 1fr; gap: 16px; align-items: start; margin-bottom: 28px; }
     .num { display: grid; place-items: center; width: 54px; aspect-ratio: 1; border-radius: 16px; color: white; background: linear-gradient(135deg, var(--blue), var(--violet)); font-weight: 900; }
@@ -107,13 +115,19 @@
   <header class="hero">
     <div class="wrap">
       <div class="eyebrow"><span class="dot"></span>Project Starter Guide</div>
-      <h1>python-pptx × <span class="gradient">GitHub Copilot</span></h1>
-      <p class="lead">PowerPoint自動生成を、あとから直しやすく・再利用しやすく始めるための最小構成。フォルダ設計、ファイルの責務、Copilotへの初期指示を1ページにまとめました。</p>
-      <div class="chips"><span class="chip">Python 3.11+</span><span class="chip">python-pptx</span><span class="chip">GitHub Copilot</span><span class="chip">16:9 slides</span></div>
+      <h1>PowerPoint・Excel × <span class="gradient">GitHub Copilot</span></h1>
+      <p class="lead">PowerPointとExcelの生成を、あとから直しやすく・再利用しやすく始めるための共通ガイド。フォルダ設計、ファイルの責務、Copilotへの初期指示を1ページにまとめました。</p>
+      <div class="chips"><span class="chip">Python 3.11+</span><span class="chip">python-pptx</span><span class="chip">openpyxl</span><span class="chip">pandas</span><span class="chip">GitHub Copilot</span></div>
+      <nav class="jump-nav" aria-label="ガイド内メニュー"><a href="#powerpoint">PowerPoint生成基盤</a><a href="#excel">Excel生成基盤</a></nav>
     </div>
   </header>
 
   <main class="wrap">
+    <div class="product-heading" id="powerpoint">
+      <span class="label">PowerPoint Foundation</span>
+      <h2>PowerPoint生成基盤</h2>
+      <p>参考資料を分析し、共通テーマ・部品・レイアウトから編集可能なスライドを生成します。</p>
+    </div>
     <section aria-labelledby="structure-title">
       <div class="section-head"><div class="num">01</div><div><h2 id="structure-title">推奨フォルダ構成</h2><p>入力素材、デザイン定義、生成処理、完成物を分離すると、スライド追加やテーマ変更が安全になります。</p></div></div>
       <div class="structure">
@@ -197,7 +211,7 @@
     <section aria-labelledby="prompt-title">
       <div class="section-head"><div class="num">04</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>参考資料を分析し、再利用可能なデザインシステムとレイアウト基盤を構築するための実践版です。</p></div></div>
       <div class="prompt-shell">
-        <div class="prompt-bar"><span>copilot-foundation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt()">全文をコピー</button></div>
+        <div class="prompt-bar"><span>copilot-foundation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('prompt', this)">全文をコピー</button></div>
         <pre class="prompt" id="prompt">あなたは、python-pptxを使って高品質なPowerPoint資料を自動生成するための「PowerPoint生成基盤」を構築するエンジニアです。
 
 目的は、GitHub CopilotからPowerPointを生成した際に発生しやすい、以下の問題を構造的に防ぐことです。
@@ -553,14 +567,322 @@ README.mdと.github/copilot-instructions.mdを作成または更新し、フォ�
       </div>
       <p class="note"><strong>使い方:</strong> 上のリンクから参考PDFを手動でダウンロードし、references/へ格納してからCopilot Chatへ全文を貼り付けます。初期構築後は.github/copilot-instructions.mdが常設ルールとして機能します。</p>
     </section>
+
+    <div class="product-heading" id="excel">
+      <span class="label">Excel Foundation</span>
+      <h2>Excel生成基盤</h2>
+      <p>用途を1種類に固定せず、データ分析・管理表・業務整理表を共通ルールから作り分けます。PowerPoint版と同じ「三菱電機スタンダード」の配色を使用します。</p>
+    </div>
+
+    <section aria-labelledby="excel-start-title">
+      <div class="section-head"><div class="num">E1</div><div><h2 id="excel-start-title">できることと最初の準備</h2><p>初回構築では参考資料や実データは必須ではありません。空のプロジェクトフォルダから基盤と3種類のサンプルを作ります。</p></div></div>
+      <div class="roles">
+        <article class="role" data-mark="01"><code>データ分析</code><p>CSV・Excelの結合、整形、集計、比較、KPI、グラフを作成。</p></article>
+        <article class="role" data-mark="02"><code>管理表</code><p>案件、課題、在庫、進捗などを入力規則と条件付き書式で管理。</p></article>
+        <article class="role" data-mark="03"><code>業務整理</code><p>業務、担当、頻度、工数、前後工程、課題、改善案を一覧化。</p></article>
+        <article class="role" data-mark="04"><code>ダッシュボード</code><p>主要KPI、推移、構成比、目標差異を1画面に整理。</p></article>
+        <article class="role" data-mark="05"><code>既存Excel改善</code><p>既存構造を確認し、数式、入力規則、表示形式、見た目を整理。</p></article>
+        <article class="role" data-mark="06"><code>定型帳票</code><p>毎回変わる入力データから、同じ構成の月報や集計表を生成。</p></article>
+      </div>
+      <p class="note"><strong>初回の手順:</strong> 空のフォルダをVS Codeで開き、下のプロンプトをCopilotのAgentモードへ貼り付けます。生成された3つのサンプルを確認してから、実業務のデータやテンプレートを追加してください。</p>
+    </section>
+
+    <section aria-labelledby="excel-structure-title">
+      <div class="section-head"><div class="num">E2</div><div><h2 id="excel-structure-title">Copilotが作る構成</h2><p>データ加工、Excelの生成、デザイン、用途別構成、検査を分離します。</p></div></div>
+      <div class="structure">
+        <pre class="tree" aria-label="Excel生成基盤の推奨フォルダツリー"><span class="dir">excel-generator/</span>
+├── <span class="file">README.md</span>
+├── <span class="file">requirements.txt</span>
+├── <span class="file">.gitignore</span>
+├── <span class="dir">.github/</span>
+│   └── <span class="file">copilot-instructions.md</span>
+├── <span class="dir">design/</span>
+│   └── <span class="file">excel_design_spec.md</span>
+├── <span class="dir">inputs/</span>
+├── <span class="dir">references/</span>
+├── <span class="dir">templates/</span>
+├── <span class="dir">outputs/</span>
+├── <span class="dir">excelgen/</span>
+│   ├── <span class="file">theme.py</span>
+│   ├── <span class="file">styles.py</span>
+│   ├── <span class="file">data_pipeline.py</span>
+│   ├── <span class="file">workbook.py</span>
+│   ├── <span class="file">validator.py</span>
+│   └── <span class="dir">profiles/</span>
+│       ├── <span class="file">analysis.py</span>
+│       ├── <span class="file">management.py</span>
+│       └── <span class="file">workflow.py</span>
+├── <span class="dir">tests/</span>
+│   └── <span class="file">test_generation.py</span>
+├── <span class="file">workbook_spec.json</span>
+└── <span class="file">generate.py</span></pre>
+        <div class="principles">
+          <div class="principle"><strong>pandasはデータ処理</strong><span>読込、整形、結合、集計に使用し、処理内容を追跡可能にする。</span></div>
+          <div class="principle"><strong>openpyxlはExcel生成</strong><span>シート、数式、表、書式、入力規則、グラフを担当する。</span></div>
+          <div class="principle"><strong>3種類のprofile</strong><span>分析、管理表、業務整理で異なるシート構成を切り替える。</span></div>
+          <div class="principle"><strong>三菱電機スタンダード</strong><span>白、ブランドレッド、チャコール／グレーでPPTと統一する。</span></div>
+          <div class="principle"><strong>元ファイルを保護</strong><span>inputsとtemplatesは上書きせず、完成物はoutputsへ保存する。</span></div>
+          <div class="principle"><strong>unittestで検査</strong><span>必須シート、数式、表、入力規則、テーマ適用を自動確認する。</span></div>
+        </div>
+      </div>
+      <p class="note"><strong>実運用時:</strong> 集計対象はinputs/、見た目の参考はreferences/、実際に継承するExcelはtemplates/へ置きます。PowerPoint版と異なり、Excel版のreferences/は必須ではありません。</p>
+    </section>
+
+    <section aria-labelledby="excel-prompt-title">
+      <div class="section-head"><div class="num">E3</div><div><h2 id="excel-prompt-title">Excel版の初期構築プロンプト</h2><p>pandasとopenpyxlを使い分け、3種類のサンプルまで生成・検査する指示文です。</p></div></div>
+      <div class="prompt-shell">
+        <div class="prompt-bar"><span>excel-copilot-foundation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('excel-prompt', this)">全文をコピー</button></div>
+        <pre class="prompt" id="excel-prompt">あなたは、Python、pandas、openpyxlを使って、再利用可能な「Excel生成基盤」を構築するエンジニアです。
+
+目的は、用途を1種類に固定せず、次の3種類のExcelを共通したデザインと品質基準で生成できるようにすることです。
+
+1. データ分析
+2. 管理表
+3. 業務整理表
+
+今回は個別業務の完成ファイルではなく、共通基盤と3種類のサンプルExcelまで作成してください。
+
+## 技術方針
+
+- Python 3を使用する
+- データの読込、整形、結合、集計にはpandasを使用してよい
+- Excelのシート、セル、数式、表、書式、入力規則、条件付き書式、グラフの生成にはopenpyxlを使用する
+- pandasで処理する必要がない単純なデータまで、無理にDataFrameへ変換しない
+- pandas.ExcelWriterは必要な場合に使用してよいが、最終的な書式とExcel固有機能はopenpyxl側で整える
+- テストにはpytestではなく標準ライブラリのunittestを使用する
+- 必須の追加依存はpandasとopenpyxlを基本とし、それ以外は明確に必要な場合だけ追加する
+- VBA、Power Query、外部データベース接続、ピボットテーブルは初期基盤には含めない
+- 元の入力ファイル、参考資料、テンプレートを上書きしない
+- 実データがないサンプルでは、架空データであることを明記する
+- 実際の業務用ファイルでは、与えられていない数値や事実を作らない
+
+## 作成する構成
+
+次のファイルとフォルダを作成してください。
+
+- README.md
+- requirements.txt
+- .gitignore
+- .github/copilot-instructions.md
+- design/excel_design_spec.md
+- inputs/
+- references/
+- templates/
+- outputs/
+- excelgen/theme.py
+- excelgen/styles.py
+- excelgen/data_pipeline.py
+- excelgen/workbook.py
+- excelgen/validator.py
+- excelgen/profiles/analysis.py
+- excelgen/profiles/management.py
+- excelgen/profiles/workflow.py
+- tests/test_generation.py
+- workbook_spec.json
+- generate.py
+
+## フォルダとファイルの役割
+
+- inputs/：集計・加工対象となるCSVまたはExcel。元ファイルは変更しない
+- references/：見た目や構成を分析する参考資料。生成元として直接使用しない
+- templates/：書式やシート構成を実際に継承するExcel。原本は上書きしない
+- outputs/：生成したExcel
+- design/excel_design_spec.md：設計とデザイン仕様の正本
+- theme.py：色、フォント、数値・日付の表示形式
+- styles.py：セル、表、見出し、KPI、グラフへの共通書式適用
+- data_pipeline.py：pandasによる読込、型変換、欠損確認、結合、集計
+- profiles/：用途別のシート構成、列構成、領域配置
+- validator.py：生成後の構造、数式、書式、入力規則の検査
+- workbook_spec.json：生成タイプ、タイトル、入力ファイル、項目、KPIなどの内容指定
+
+templateが存在する場合は、templateを生成の土台として優先してください。
+referencesは構成、配色、表示形式を分析する目的だけで使用してください。
+inputsとtemplatesの元ファイルは変更せず、生成物は必ずoutputs/へ保存してください。
+
+## カラーテーマ：三菱電機スタンダード
+
+PowerPoint生成基盤と同じ「白ベース＋ブランドレッド＋チャコール／グレー」にしてください。
+
+theme.pyで次の色を一元管理してください。
+
+- BRAND_RED: #E60012
+- PRIMARY_TEXT: #1A1A1A
+- SECONDARY_TEXT: #555555
+- DARK_GRAY: #333333
+- MID_GRAY: #6E6E6E
+- BORDER_GRAY: #D9D9D9
+- LIGHT_GRAY: #F2F2F2
+- VERY_LIGHT_GRAY: #F7F7F7
+- BACKGROUND: #FFFFFF
+
+基本ルールは次のとおりです。
+
+- シート背景と通常セルは白を基本とする
+- ブランドレッドは重要KPI、警告、注目系列、重要見出しに限定する
+- 通常の見出しと本文にはチャコールまたはダークグレーを使用する
+- 補助領域、入力説明、集計カードにはライトグレーを使用する
+- 赤を表全体や大面積の背景に使用しない
+- 赤だけで状態を区別せず、文字、記号、位置、ラベルを併用する
+- 派手な装飾より、入力しやすさ、読みやすさ、比較しやすさを優先する
+- 日本語フォントはYu Gothicを第一候補とする
+- templateに指定フォントや正式なブランドカラーがある場合はtemplateを優先し、採用値をdesign/excel_design_spec.mdへ記録する
+
+色、フォント、書式、配置の責務を次のように分離してください。
+
+- theme.py：色、フォント、数値・割合・金額・日付の表示形式
+- styles.py：themeの値を使ってセル、表、見出し、KPI、グラフへ書式を適用
+- profiles/：シート構成、列構成、各領域の配置
+- workbook_spec.json：タイトル、項目、数値、入力ファイル、生成タイプ
+
+workbook_spec.jsonに色コード、フォント名、セル座標を持たせないでください。
+
+## 3種類の生成profile
+
+### analysis
+
+原則として次のシートを作成してください。
+
+- Readme
+- Raw_Data
+- Calculation
+- Summary
+- Dashboard
+
+pandasを使って元データの型、欠損、重複を確認し、必要な整形・集計を再現可能な処理として実装してください。
+元データ、計算過程、表示結果を分離してください。
+主要KPI、集計表、棒グラフまたは折れ線グラフを含むサンプルを作成してください。
+
+### management
+
+原則として次のシートを作成してください。
+
+- Readme
+- Management
+- Master
+- Summary
+
+Excelテーブル、フィルター、ウィンドウ枠固定、入力規則、条件付き書式を設定してください。
+期限超過、必須項目の未入力、長期間未更新などを識別できるサンプルにしてください。
+入力値の選択肢や閾値はMasterシートへ分離してください。
+
+### workflow
+
+原則として次のシートを作成してください。
+
+- Readme
+- Process_List
+- Roles
+- Summary
+
+業務名、担当、頻度、所要時間、前工程、後工程、課題、改善案を管理できるようにしてください。
+複雑なフローチャートを図形で描かず、並べ替え・絞り込み可能な表として構造化してください。
+
+## 共通仕様
+
+- タイトル、見出し、入力セル、計算セル、出力セルを視覚的に区別する
+- 数値、割合、金額、日付は文字列ではなく適切なデータ型で保存する
+- pandas読込時に列ごとの想定型と実際の型を確認し、不一致を黙って補正しない
+- 欠損、重複、結合できなかったキーを確認し、件数を記録する
+- 入力欄には必要に応じて入力規則を設定する
+- 表にはフィルターとウィンドウ枠固定を設定する
+- 列幅と行高を内容に合わせて調整する
+- 長い文字列は極端に縮小せず、折り返し、列幅調整、別シート化を優先する
+- 複雑な数式を1セルに詰め込まず、必要に応じて計算列を分ける
+- 数式エラー、参照切れ、必須シート不足をvalidator.pyで検査する
+- openpyxlはExcel数式の計算エンジンではないことをREADME.mdに明記する
+- 数式を含むブックはExcelで開いた際に再計算される設定にする
+- 元データ件数、除外件数、集計前後の合計など、主要な照合結果を記録する
+
+## .github/copilot-instructions.md
+
+このプロジェクトで常に守る短いルールとして、次を記載してください。
+
+- pandasはデータ処理、openpyxlはExcel生成と書式設定を主に担当する
+- inputsとtemplatesを上書きしない
+- 生成物はoutputsへ保存する
+- 数値、日付、割合は適切なデータ型で保持する
+- 計算過程を追跡可能にする
+- theme、styles、profiles、workbook_specの責務を混在させない
+- 三菱電機スタンダードの配色を使用する
+- テストはunittestを使用する
+- 追加依存を安易に増やさない
+- 生成後にvalidatorとunittestを実行する
+
+## サンプルとテスト
+
+小規模な架空データを使って、次の3ファイルを生成してください。
+
+- outputs/sample_analysis.xlsx
+- outputs/sample_management.xlsx
+- outputs/sample_workflow.xlsx
+
+unittestで次を検査してください。
+
+- 3種類のサンプルExcelが生成される
+- 各profileの必須シートと必須列が存在する
+- Excelテーブルとフィルターが設定されている
+- ウィンドウ枠固定が設定されている
+- 必要な入力規則と条件付き書式が設定されている
+- 指定したテーマカラーが使用されている
+- 数式に明らかな参照エラーがない
+- 入力ファイルとtemplateが上書きされていない
+- pandasによる集計前後の件数または合計が照合できる
+
+`python -m unittest discover -s tests` を実行し、失敗を修正してください。
+
+## 実装手順
+
+### Step 1
+現在のファイル構成を確認し、既存ファイルがある場合は役割を整理する。元ファイルは上書きしない。
+
+### Step 2
+design/excel_design_spec.mdとworkbook_spec.jsonの初期版を作成する。
+
+### Step 3
+theme.py、styles.py、data_pipeline.py、workbook.pyを実装する。
+
+### Step 4
+analysis、management、workflowの3つのprofileを実装する。
+
+### Step 5
+3種類のサンプルExcelを生成する。
+
+### Step 6
+validator.pyとunittestを実装し、検査結果を修正する。
+
+### Step 7
+利用可能な環境では生成した各シートを目視確認し、文字切れ、狭すぎる列、見づらいグラフ、色の過剰使用を修正する。目視確認できない場合は、その制約をREADME.mdに記載する。
+
+### Step 8
+README.mdと.github/copilot-instructions.mdを完成させる。
+
+## 完了条件
+
+- 3種類のサンプルExcelがエラーなく生成される
+- `python -m unittest discover -s tests` が成功する
+- validatorの重大エラーが0件である
+- 各ファイルで入力、計算、出力の区別が確認できる
+- 数値、割合、金額、日付が適切なデータ型と表示形式で保存されている
+- 文字切れ、読めないグラフ、過剰な赤背景がない
+- pandasによるデータ加工と集計の流れを追跡できる
+- workbook_spec.jsonに色、フォント、セル座標が含まれていない
+- design/excel_design_spec.mdが存在する
+- .github/copilot-instructions.mdが存在する
+- README.mdの手順だけで環境構築、生成、検査を再現できる
+
+最初からすべてのExcel用途を扱う巨大な仕組みを作らないでください。初期3種類を基準とし、実際に必要になった用途だけprofileとして追加してください。
+
+最も重要なのは、「Copilotが毎回Excelを自由に装飾する」のではなく、「pandasで再現可能にデータを処理し、決められたテーマ、スタイル、profileを使ってopenpyxlでExcelを生成する」状態を作ることです。</pre>
+      </div>
+      <p class="note"><strong>使い方:</strong> 初回は空のプロジェクトフォルダで実行できます。基盤の確認後、分析対象をinputs/、見た目の参考をreferences/、継承したいExcelをtemplates/へ置き、workbook_spec.jsonを更新して再生成します。</p>
+    </section>
   </main>
 
-  <footer class="wrap">Built for maintainable presentation automation.</footer>
+  <footer class="wrap">Built for maintainable PowerPoint and Excel automation.</footer>
   <script>
-    async function copyPrompt() {
-      const button = document.querySelector('.copy');
+    async function copyPrompt(targetId, button) {
       try {
-        await navigator.clipboard.writeText(document.getElementById('prompt').innerText);
+        await navigator.clipboard.writeText(document.getElementById(targetId).innerText);
         button.textContent = 'コピー済み';
         setTimeout(() => button.textContent = '全文をコピー', 1800);
       } catch (_) {
