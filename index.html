@@ -117,30 +117,42 @@
     <section aria-labelledby="structure-title">
       <div class="section-head"><div class="num">01</div><div><h2 id="structure-title">推奨フォルダ構成</h2><p>入力素材、デザイン定義、生成処理、完成物を分離すると、スライド追加やテーマ変更が安全になります。</p></div></div>
       <div class="structure">
-        <pre class="tree" aria-label="推奨フォルダツリー"><span class="dir">ppt-project/</span>
+        <pre class="tree" aria-label="推奨フォルダツリー"><span class="dir">ppt-generator/</span>
 ├── <span class="file">README.md</span>
 ├── <span class="file">requirements.txt</span>
 ├── <span class="file">.gitignore</span>
+├── <span class="dir">.github/</span>
+│   └── <span class="file">copilot-instructions.md</span>
 ├── <span class="dir">assets/</span>
 │   ├── <span class="dir">images/</span>
 │   ├── <span class="dir">icons/</span>
 │   └── <span class="dir">fonts/</span>
-├── <span class="dir">data/</span>
-│   └── <span class="file">content.yaml</span>
-├── <span class="dir">src/</span>
-│   ├── <span class="file">main.py</span>
+├── <span class="dir">template/</span>
+│   └── <span class="file">consulting_template.pptx</span>
+├── <span class="dir">references/</span>
+│   ├── <span class="file">reference_01.pptx</span>
+│   └── <span class="file">reference_01.pdf</span>
+├── <span class="dir">design/</span>
+│   ├── <span class="file">reference_analysis.md</span>
+│   └── <span class="file">design_spec.md</span>
+├── <span class="dir">pptxgen/</span>
 │   ├── <span class="file">theme.py</span>
-│   ├── <span class="file">layouts.py</span>
-│   └── <span class="file">utils.py</span>
+│   ├── <span class="file">components.py</span>
+│   ├── <span class="file">renderer.py</span>
+│   ├── <span class="file">validator.py</span>
+│   └── <span class="dir">layouts/</span>
+├── <span class="dir">inputs/</span>
+│   └── <span class="file">slides.json</span>
 ├── <span class="dir">tests/</span>
-│   └── <span class="file">test_slides.py</span>
-└── <span class="dir">output/</span>
-    └── <span class="file">.gitkeep</span></pre>
+│   └── <span class="file">test_generation.py</span>
+├── <span class="dir">outputs/</span>
+│   └── <span class="file">.gitkeep</span>
+└── <span class="file">generate.py</span></pre>
         <div class="principles">
-          <div class="principle"><strong>素材とコードを分ける</strong><span>画像差し替えで生成ロジックを壊さない。</span></div>
-          <div class="principle"><strong>内容と見た目を分ける</strong><span>YAMLとtheme.pyを独立させ、再利用性を高める。</span></div>
-          <div class="principle"><strong>完成物はGit管理しない</strong><span>output/の.pptxは原則.gitignoreへ。</span></div>
-          <div class="principle"><strong>生成結果を検証する</strong><span>枚数、タイトル、必須要素をテストで確認する。</span></div>
+          <div class="principle"><strong>templateとreferencesを分ける</strong><span>生成の土台と、分析用の見本を混同しない。</span></div>
+          <div class="principle"><strong>PPTXとPDFを併用する</strong><span>構造の機械分析と見た目の視覚分析を補完する。</span></div>
+          <div class="principle"><strong>内容とデザインを分ける</strong><span>入力には内容だけを置き、色・書体・配置は基盤側で管理する。</span></div>
+          <div class="principle"><strong>標準機能で検証する</strong><span>テストはunittestを使い、追加依存を最小限にする。</span></div>
         </div>
       </div>
     </section>
@@ -149,16 +161,17 @@
       <div class="section-head"><div class="num">02</div><div><h2 id="roles-title">各ファイルの役割</h2><p>1ファイル1責務を基本に、Copilotが変更範囲を判断しやすい境界を作ります。</p></div></div>
       <div class="roles">
         <article class="role" data-mark="MD"><code>README.md</code><p>セットアップ、実行方法、設計方針、成果物の場所を記載。</p></article>
-        <article class="role" data-mark="PKG"><code>requirements.txt</code><p>python-pptx、PyYAML、Pillowなど依存パッケージを固定。</p></article>
+        <article class="role" data-mark="PKG"><code>requirements.txt</code><p>python-pptxを基本とし、明確に必要な依存だけを固定。</p></article>
         <article class="role" data-mark="IGN"><code>.gitignore</code><p>仮想環境、キャッシュ、生成した.pptxをGit対象外にする。</p></article>
-        <article class="role" data-mark="AST"><code>assets/</code><p>ロゴ、写真、アイコン、必要なフォントなどの素材置き場。</p></article>
-        <article class="role" data-mark="YML"><code>data/content.yaml</code><p>タイトルや本文、注記など、スライド内容をコードから分離。</p></article>
-        <article class="role" data-mark="RUN"><code>src/main.py</code><p>データを読み込み、各レイアウトを呼び出して.pptxを生成。</p></article>
-        <article class="role" data-mark="UI"><code>src/theme.py</code><p>色、書体、余白、サイズなど共通デザイントークンを定義。</p></article>
-        <article class="role" data-mark="LYT"><code>src/layouts.py</code><p>表紙、章扉、本文、比較など再利用可能なレイアウト関数。</p></article>
-        <article class="role" data-mark="UTL"><code>src/utils.py</code><p>画像配置、文字量調整、単位変換など共通処理を集約。</p></article>
-        <article class="role" data-mark="TST"><code>tests/test_slides.py</code><p>生成成功、スライド枚数、必須タイトルなどを自動確認。</p></article>
-        <article class="role" data-mark="OUT"><code>output/</code><p>生成したPowerPointを置く場所。.gitkeepのみ管理対象。</p></article>
+        <article class="role" data-mark="COP"><code>.github/copilot-instructions.md</code><p>設計の要点をGitHub Copilotへ常時適用する短いルール。</p></article>
+        <article class="role" data-mark="TPL"><code>template/</code><p>スライドマスター、ロゴ、フッターなど生成時の土台。</p></article>
+        <article class="role" data-mark="REF"><code>references/</code><p>同じ資料のPPTXとPDFを置き、構造と見た目を分析。</p></article>
+        <article class="role" data-mark="IN"><code>inputs/slides.json</code><p>文章、数値、画像パス、layout_idなど内容だけを記述。</p></article>
+        <article class="role" data-mark="UI"><code>pptxgen/theme.py</code><p>色、書体、文字サイズ、間隔、semantic styleを一元管理。</p></article>
+        <article class="role" data-mark="CMP"><code>pptxgen/components.py</code><p>指定領域へ統一された部品を描画し、低レベルAPIを隠蔽。</p></article>
+        <article class="role" data-mark="LYT"><code>pptxgen/layouts/</code><p>座標と領域配置、layout固有の情報量上限を管理。</p></article>
+        <article class="role" data-mark="TST"><code>tests/test_generation.py</code><p>標準のunittestで生成、layout解決、validator結果を確認。</p></article>
+        <article class="role" data-mark="OUT"><code>outputs/</code><p>生成したPowerPointを置く場所。.gitkeepのみ管理対象。</p></article>
       </div>
     </section>
 
@@ -180,39 +193,43 @@
 
 ## 基本方針
 
-PowerPointの各スライドを毎回ゼロから自由生成してはいけません。以下の3層に分離してください。
+PowerPointの各スライドを毎回ゼロから自由生成してはいけません。以下の責務に分離してください。
 
 1. theme.py
-   - 色
-   - フォントとフォールバック
-   - フォントサイズ
-   - 余白とオブジェクト間隔
-   - 線
-   - 強調表現
-   - 背景色と文字色を組み合わせたスタイル
-   - 基本的なデザインルール
+   - 色、フォントと日本語フォールバック、フォントサイズ
+   - 余白・間隔・線などの共通デザイントークン
+   - 背景色と文字色を組み合わせたsemantic style
+   - スライド固有の絶対座標は持たない
 2. components.py
-   - タイトル
-   - メッセージライン
-   - テキストボックス
-   - カード
-   - ラベル
-   - 矢印
-   - 区切り線
-   - KPI表示
-   - 図表用コンテナ
-   など、スライド内で再利用する部品
+   - タイトル、メッセージ、カード、KPI、矢印、図表などの再利用部品
+   - layoutから受け取ったBoxまたはx/y/w/hへ部品を描画する
+   - themeの色・フォント定義を適用し、python-pptxの低レベルAPIを隠蔽する
+   - スライド全体の配置判断はしない
 3. layouts/
    - 複数のcomponentsを組み合わせた「1枚のスライドの型」
-   - Copilotが座標、色、フォントを直接自由指定するのではなく、原則としてlayoutsを利用してスライドを生成する
+   - 座標、領域比率、整列、layout固有の情報量上限を管理する
+   - rawな色コード、フォント名、フォントサイズは持たない
+4. slides.json
+   - 文章、数値、画像パス、layout_idなどの内容だけを持つ
+   - 色、フォント、座標、サイズなどのデザイン指定は持たない
+
+Copilotは原則として既存のtheme、components、layoutsを利用してスライドを生成してください。色・フォント・座標を各所へ混在させないでください。
 
 ## 推奨フォルダ構成
 
 ppt-generator/
+├── .github/
+│   └── copilot-instructions.md
 ├── template/
 │   └── consulting_template.pptx
 ├── references/
-│   └── 参考にするPowerPoint資料やスライド
+│   ├── reference_01.pptx
+│   └── reference_01.pdf
+├── design/
+│   ├── reference_analysis.md
+│   └── design_spec.md
+├── tools/
+│   └── analyze_references.py
 ├── pptxgen/
 │   ├── __init__.py
 │   ├── theme.py
@@ -235,9 +252,30 @@ ppt-generator/
 
 必要であれば構成は改善して構いません。ただし、過度に複雑な設計、将来用の空ファイル、不要な抽象クラスは作成しないでください。
 
+## 依存関係とテスト
+
+- PowerPoint生成にはpython-pptxを使用する
+- テストにはPython標準ライブラリのunittestを使用する
+- pytestなど追加のテストライブラリは導入しない
+- python-pptx以外の追加依存は、標準ライブラリでは実現できない明確な必要性が生じるまで増やさない
+- テストは `python -m unittest discover -s tests` で実行できるようにする
+
+PyYAMLやPillowを前提として追加しないでください。入力は標準ライブラリで扱えるJSONを基本とし、追加依存が必要な場合は理由と代替案をREADME.mdへ記録してください。
+
+## templateとreferencesの役割分担
+
+- template/consulting_template.pptxは、実際の生成時に読み込む土台です。スライドサイズ、マスター、既存レイアウト、ロゴ、フッターなどを可能な範囲で継承してください。
+- references/はデザイン分析用の見本です。生成ベースとして直接使わず、複数資料から再利用可能な共通ルールを抽出してください。
+- 同じ参考資料をPPTXとPDFのペアで置く運用を基本とします。
+- PPTXはpython-pptxで色、フォントサイズ、座標、図形サイズなどを機械分析します。
+- PDFはCopilot Chatへプロンプトと一緒に添付し、見た目、情報密度、視線誘導、カード表現などを視覚分析します。
+- PDFだけの模写、PPTXだけの数値コピーは行わず、両方の結果をdesign/reference_analysis.mdへ統合してください。
+
+templateとreferencesが矛盾する場合は、templateのブランド必須要素を優先し、referenceの汎用的なレイアウト表現を組み合わせてください。重大な矛盾は勝手に決めず、差異と推奨案を示してください。
+
 ## 参考スライドの分析
 
-references/に格納したPowerPoint資料・スライドを今回のデザイン基準として利用してください。実装を始める前に参考資料を分析し、以下を整理してください。
+references/に格納したPPTXと同内容のPDFを今回のデザイン基準として利用してください。実装を始める前に、PPTXの機械分析とPDFの視覚分析を行い、以下を整理してください。
 
 ### デザインルール
 
@@ -254,24 +292,23 @@ references/に格納したPowerPoint資料・スライドを今回のデザイ�
 - 強調方法
 - ページ番号、ロゴ、フッターの扱い
 
-参考資料の値をそのままコピーする必要はありません。複数スライドを比較し、再利用可能な共通ルールとして抽象化してください。
+参考資料の値をそのままコピーする必要はありません。複数スライドを比較し、再利用可能な共通ルールとして抽象化してdesign/reference_analysis.mdへ記録してください。
 
 ## スライド基本形の抽出
 
-参考スライドを単に模写するのではなく、レイアウトパターンに分類してください。候補例は次のとおりです。
+参考スライドを単に模写するのではなく、レイアウトパターンに分類してください。初期実装は原則として次の7種類です。
 
-- 2カラム比較
-- 3カラム整理
-- Before / After
-- プロセス
-- KPI
-- 2×2マトリクス
-- グラフ＋示唆
-- エグゼクティブサマリ
+1. executive_summary：結論、重要論点、経営層向け要約
+2. two_column：2テーマ比較、課題と対応、文章と図の並置
+3. three_column：3観点、3施策、3分類
+4. before_after：As-Is / To-Be、改善前後
+5. process：手順、PoC、ロードマップ
+6. matrix_2x2：優先順位、ポジショニング
+7. chart_insight：編集可能なグラフと示唆
 
-この一覧をそのまま採用する必要はありません。参考資料を分析した結果、頻繁に使われ、汎用性が高く、コンサル資料として再利用価値が高いレイアウトを優先してください。
+参考資料の分析で明らかに再利用価値の高いパターンが見つかった場合に限り、理由をdesign/reference_analysis.mdへ記載した上で1〜2種類追加して構いません。最初から10種類以上の網羅的なlayout libraryを作ること、将来用の空ファイルを作ることは禁止します。
 
-レイアウト数は最初から増やしすぎず、最初に実装するのは3〜5種類としてください。layouts/には採用したレイアウトだけを作成し、未実装レイアウトの空ファイルは作成しないでください。
+KPIはまずadd_kpi_card()というcomponentとして実装し、executive_summaryやtwo_columnから再利用してください。参考資料でKPI一覧が頻出する場合のみ、追加layoutの候補としてkpi_dashboardを検討してください。
 
 各レイアウトについて、以下を定義してください。
 
@@ -281,6 +318,8 @@ references/に格納したPowerPoint資料・スライドを今回のデザイ�
 - 各エリアの基本配置
 - 想定する最大文字量と項目数
 - 情報量を超えた場合の分割方針
+
+各layoutの座標、領域比率、整列ルールはlayout側の定数またはspecで管理し、slides.jsonから自由指定させないでください。文字量や項目数が上限を超えた場合は、フォント縮小よりスライド分割を優先してください。
 
 ## コンサル資料としての基本原則
 
@@ -294,25 +333,52 @@ references/に格納したPowerPoint資料・スライドを今回のデザイ�
 
 装飾よりも、情報の階層、視線誘導、比較のしやすさ、メッセージの明確さを優先してください。
 
-## 色の安全性
+## カラーテーマ：三菱電機スタンダード
 
-背景色と文字色を個別に自由指定する設計は禁止します。例えば、次のように背景色と文字色をセットにしたスタイルとして管理してください。
+資料全体のカラーテーマは、三菱電機のコーポレートイメージに合わせた「白ベース＋ブランドレッド＋チャコール／グレー」を基本としてください。
 
-- DARK_PANEL
-- LIGHT_PANEL
-- ACCENT_PANEL
-- NEUTRAL_PANEL
+### 基本方針
 
-悪い例：
-shape.fill = blue
-text.color = blue
+- スライド背景は原則として白とする
+- ブランドレッドは、見出し、重要数値、強調線、主要KPI、重要な図形など、意味のある強調箇所に限定する
+- 本文や通常見出しはチャコール〜ダークグレーを基本とし、可読性を優先する
+- 補助領域やカード背景にはライトグレーを使用する
+- 赤をスライド全面や大面積の背景に多用しない
+- 赤だけで意味を区別せず、ラベル、位置、形状も併用する
+- 白地を7〜8割以上の目安で十分に残し、シンプルで余白のある企業資料らしい印象を維持する
 
-良い例：
-style = DARK_PANEL
-fill = navy
-text = white
+### 推奨カラー
 
-この対応関係をtheme.pyで一元管理し、componentsとlayoutsから同じ定義を利用してください。
+theme.pyで以下の色を一元管理してください。
+
+- BRAND_RED: #E60012
+- PRIMARY_TEXT: #1A1A1A
+- SECONDARY_TEXT: #555555
+- DARK_GRAY: #333333
+- MID_GRAY: #6E6E6E
+- BORDER_GRAY: #D9D9D9
+- LIGHT_GRAY: #F2F2F2
+- VERY_LIGHT_GRAY: #F7F7F7
+- BACKGROUND: #FFFFFF
+
+実際のtemplateまたはreferencesに、より正式なブランドカラー指定がある場合は、その値を優先し、採用値をdesign/design_spec.mdへ記録してください。
+
+### semantic style
+
+背景色と文字色を個別に自由指定する設計は禁止します。theme.pyで安全な組み合わせとして管理してください。
+
+- WHITE_PANEL：fill #FFFFFF、text #1A1A1A、border #D9D9D9
+- LIGHT_PANEL：fill #F2F2F2、text #1A1A1A、border #D9D9D9
+- RED_ACCENT_PANEL：fill #E60012、text #FFFFFF、border #E60012
+- DARK_PANEL：fill #333333、text #FFFFFF、border #333333
+
+component側ではstyle=WHITE_PANELのように利用します。layout内へRGB値や背景色・文字色の組み合わせを直接書かないでください。
+
+### 赤の使用ルール
+
+ブランドレッドは、スライド上部の細いアクセントライン、セクションラベル、重要KPI、グラフ内の注目系列、Before / Afterの強調側、重要な矢印、結論や重要メッセージの一部に使用します。通常の本文、すべてのカード背景、すべての見出しを赤にすることは禁止します。
+
+グラフは原則として通常系列をグレー、注目系列をブランドレッドとし、伝えたい数値が自然に目立つ構成にしてください。目指す印象は、技術資料・業務改善資料・DX資料のいずれにも使え、派手すぎず、フォーマルで信頼感のある企業資料です。
 
 ## components.pyの設計
 
@@ -327,7 +393,9 @@ python-pptxの低レベルAPIを、各スライド生成処理から直接大量
 - add_section_label()
 - add_chart_container()
 
-位置、フォント、色、余白などのデザインルールは、できる限りcomponents内部に隠してください。同じ処理を複数のlayoutへコピーせず、共通componentへ集約してください。
+component関数はlayoutからBoxまたはx/y/w/hを受け取り、その領域へ描画してください。フォント、色、テキスト余白、段落間隔、線、塗りなどの共通デザインルールはcomponents内部からthemeを参照して適用します。同じ処理を複数のlayoutへコピーせず、共通componentへ集約してください。
+
+componentsは受け取った領域内の描画を担当し、スライド全体の座標や領域比率は決定しません。生成したshapeには、可能であればPPTGEN|title|001のようなデバッグしやすいnameを設定してください。
 
 ## layoutsの設計
 
@@ -338,13 +406,15 @@ python-pptxの低レベルAPIを、各スライド生成処理から直接大量
 - render_two_column(slide, data)
 - render_process(slide, data)
 
-layouts内では低レベルな色、フォント、座標指定を極力行わず、componentsを組み合わせて構築してください。
+layoutsは、スライド全体の座標、領域比率、整列、各Boxの配置を決定し、componentsを組み合わせて構築してください。座標はlayout側に閉じ込め、componentsやslides.jsonへ分散させません。一方、layouts内ではrawな色コード、フォント名、フォントサイズを指定せず、themeとcomponentsを利用してください。
 
 ## slides.jsonの設計
 
 slides.jsonには、原則として文章、数値、画像パス、layout_idだけを記述してください。色、フォント、座標、サイズなどのデザイン指定は入力データに持たせず、theme、components、layouts側で管理してください。
 
-入力値を検証し、未知のlayout_id、必須項目の不足、上限を超える文字量や項目数について、理解しやすいエラーまたは警告を出してください。
+入力値を検証し、未知のlayout_id、必須項目の不足、上限を超える文字量や項目数について、理解しやすいエラーまたは警告を出してください。禁止する入力は、x、y、width、height、font_size、font_name、text_color、fill_color、line_colorです。
+
+文章が長い場合に自動で文字を極端に小さくすることを基本戦略にしないでください。入力文字量を検証し、layout上限を超えたら警告またはエラーを出し、スライド分割を促し、必要な場合だけ最小フォントサイズを守った小幅な調整を行ってください。日本語と英語の幅の違いは、必要に応じてunicodedata.east_asian_width()を使った簡易display unitで判定してください。
 
 ## validator.py
 
@@ -367,15 +437,17 @@ validatorの実装に過度な時間を使わず、まず生成品質を優先�
 
 template/consulting_template.pptxが存在する場合は、それをベースに生成してください。既存テンプレートから、スライドサイズ、スライドマスター、フォント、基本レイアウト、ロゴ、フッターなど、利用可能なものはできるだけ活用してください。
 
-既存テンプレートと参考スライドのデザインが矛盾する場合は勝手に決定せず、相違点と推奨案を提示して確認を求めてください。決定した優先順位と理由はREADME.mdに記録してください。
+templateは実際の生成ベース、referencesは分析用の見本です。既存テンプレートと参考スライドのデザインが矛盾する場合は勝手に決定せず、相違点と推奨案を提示して確認を求めてください。決定した優先順位と理由はdesign/reference_analysis.mdとREADME.mdに記録してください。
 
 ## 実装ルール
 
 - Pythonを使用する
 - PowerPoint生成にはpython-pptxを使用する
+- テストにはunittestを使用し、pytestは導入しない
+- python-pptx以外の追加依存を最小限にする
 - コードを必要以上に複雑化しない
 - 再利用性を優先する
-- 色、フォント、座標のハードコードを各ファイルに分散させない
+- 色とフォントはtheme、部品描画はcomponents、座標と配置はlayoutsへ分離する
 - マジックナンバーを極力減らす
 - 同じ処理を複数layoutにコピーしない
 - 可能な限り共通componentへ集約する
@@ -383,6 +455,24 @@ template/consulting_template.pptxが存在する場合は、それをベース�
 - 画像化したスライドを貼り付ける方式にはしない
 - 日本語フォントは第一候補とフォールバック候補をtheme.pyで定義する
 - 特定環境にしか存在しないフォントを前提にしない
+- 文字量超過時はフォント縮小よりスライド分割を優先する
+
+## design_spec.md
+
+design/design_spec.mdを設計上の正とし、architecture、theme/components/layoutsの責務、デザイントークン、三菱電機スタンダードのカラー、semantic style、typography、spacing、7種類のlayout、各layoutの情報量上限、text overflow方針、template/referencesの優先順位、validator方針を記録してください。
+
+## .github/copilot-instructions.md
+
+初期構築後も同じルールが常時適用されるよう、.github/copilot-instructions.mdを作成してください。design_spec.mdの全文コピーではなく、次の要点を短く記載します。
+
+- PowerPoint生成はpython-pptxを使う
+- design/design_spec.mdを設計上の正とする
+- 色とフォントはtheme、部品描画はcomponents、座標と配置はlayoutsへ分離する
+- contentとdesignを分離し、slides.jsonにデザイン指定を入れない
+- 新layoutを安易に追加せず、まず既存layout/componentを再利用する
+- スライドを画像化せず、PowerPoint上で個別編集できる状態を維持する
+- 文字量超過時はフォント縮小よりスライド分割を優先する
+- 変更後はunittestとvalidatorを実行する
 
 ## 作業手順
 
@@ -390,18 +480,16 @@ template/consulting_template.pptxが存在する場合は、それをベース�
 現在のリポジトリとreferences/、template/を確認する。
 
 ### Step 2
-参考スライドを分析し、デザインルール、レイアウトパターン、共通部品を整理する。この時点では大量のコードを書かない。
+tools/analyze_references.pyを最小限の依存で用意し、referencesのPPTXとPDF、templateを分析する。この時点では大量のコードを書かない。
 
 ### Step 3
-分析結果をもとに、採用予定のフォルダ構成、theme.py、components.py、layouts、slides.jsonの設計方針を提示する。
-
-Step 3の設計案を提示した時点で作業を停止し、ユーザーの承認を待ってください。承認されるまでStep 4以降のファイル作成・変更は行わないでください。
+分析結果をdesign/reference_analysis.mdへまとめ、今回の仕様と統合したdesign/design_spec.mdを作成する。
 
 ### Step 4
-承認後、代表的な3〜5レイアウトを最小限の構成で実装する。
+theme.py、components.pyと、原則7種類のlayoutを最小限の構成で実装する。
 
 ### Step 5
-サンプル資料を5枚程度生成する。最低でもサマリ、2カラム、Before / After、プロセス、KPIまたはグラフを含める。
+7種類の初期layoutを1枚ずつ確認できる日本語のサンプル資料を生成する。
 
 ### Step 6
 生成したPowerPointを確認し、必要に応じてレイアウト、余白、文字サイズなどを修正する。利用可能な環境では各スライドを画像としてレンダリングし、目視確認する。
@@ -410,28 +498,40 @@ Step 3の設計案を提示した時点で作業を停止し、ユーザーの�
 validatorを追加する。
 
 ### Step 8
-README.mdを作成し、フォルダ構成、各ファイルの役割、新しいlayoutとcomponentの追加方法、PowerPoint生成方法、検証方法、デザインルールを記載する。
+unittestを追加し、`python -m unittest discover -s tests` で生成、7種類のlayout解決、未知のlayout拒否、必須項目不足、validatorのERROR=0を確認する。
+
+### Step 9
+README.mdと.github/copilot-instructions.mdを作成または更新し、フォルダ構成、各ファイルの役割、新しいlayoutとcomponentの追加方法、PowerPoint生成方法、検証方法、デザインルールを記載する。
+
+### Step 10
+最終的にもう一度サンプルを生成し、validatorとunittestを実行する。
+
+今回は設計方針が決まっているため、Step 3で承認待ち停止はせず、重大な矛盾や不足がない限りStep 10まで進めてください。
 
 ## 完了条件
 
 - サンプルPowerPointがエラーなく生成される
-- 5種類の代表スライドが含まれる
+- 原則7種類の初期layoutと、それぞれを確認できるサンプルスライドが含まれる
 - validatorの重大エラーが0件である
+- `python -m unittest discover -s tests` が成功する
 - 各スライドでタイトル、メッセージ、根拠情報の階層が確認できる
 - テキストのはみ出しや意図しない図形の重なりがない
 - 背景色と文字色に十分なコントラストがある
 - 生成物がPowerPoint上で個別編集できる
+- slides.jsonに色、フォント、座標が含まれていない
+- design/design_spec.mdとdesign/reference_analysis.mdが存在する
+- .github/copilot-instructions.mdが存在する
 - README.mdの手順だけで環境構築、生成、検証を再現できる
 
 ## 最重要事項
 
-最初から完成形を想像して大量のレイアウトや抽象クラスを作らないでください。参考資料から実際によく使うパターンを抽出し、それを再利用可能な形にすることを優先してください。
+最初から完成形を想像して大量のレイアウトや抽象クラスを作らないでください。初期7種類を基準とし、参考資料から本当に再利用価値の高いパターンが見つかった場合だけ1〜2種類を追加してください。
 
 最も重要なのは、「Copilotが毎回PowerPointを自由描画する」のではなく、「Copilotが決められたデザインシステムとレイアウトライブラリを利用して資料を生成する」状態を作ることです。
 
-実装前に、まず参考資料を分析した結果と、採用予定のフォルダ構成、レイアウト一覧、デザインルールを提示してください。その後はStep 3で停止し、ユーザーの承認を待ってください。</pre>
+参考資料の分析結果、採用したフォルダ構成、レイアウト一覧、デザインルール、依存関係、テスト結果を記録し、生成、検証、READMEと常設Copilotルールの整備まで完了してください。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> リポジトリ直下でCopilot Chatを開き、全文を貼り付けます。CopilotはStep 3で停止するため、設計内容を確認してから実装を承認してください。</p>
+      <p class="note"><strong>使い方:</strong> references/へ同じ資料のPPTXとPDFを置き、Copilot ChatにはPDFを添付して全文を貼り付けます。初期構築後は.github/copilot-instructions.mdが常設ルールとして機能します。</p>
     </section>
   </main>
 
