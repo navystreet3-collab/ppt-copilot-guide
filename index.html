@@ -88,7 +88,7 @@
     .copy { border: 1px solid #536079; border-radius: 9px; padding: 7px 11px; background: #202b40; color: #fff; cursor: pointer; }
     .copy:hover { background: #2d3b55; }
     .copy:focus-visible { outline: 3px solid #67e8f9; outline-offset: 2px; }
-    .prompt { padding: 22px; white-space: pre-wrap; color: #e6ebf5; }
+    .prompt { max-height: min(72vh, 780px); padding: 22px; overflow: auto; white-space: pre-wrap; color: #e6ebf5; }
     .note { margin: 16px 0 0; color: var(--muted); font-size: .9rem; }
     .note strong { color: var(--ink); }
     footer { padding: 8px 0 50px; color: var(--muted); text-align: center; font-size: .82rem; }
@@ -163,42 +163,275 @@
     </section>
 
     <section aria-labelledby="prompt-title">
-      <div class="section-head"><div class="num">03</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>リポジトリ直下でCopilot Chatを開き、以下をそのまま貼り付けます。</p></div></div>
+      <div class="section-head"><div class="num">03</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>参考資料を分析し、再利用可能なデザインシステムとレイアウト基盤を構築するための実践版です。</p></div></div>
       <div class="prompt-shell">
-        <div class="prompt-bar"><span>copilot-initial-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt()">コピー</button></div>
-        <pre class="prompt" id="prompt">あなたは、python-pptxを使ったPowerPoint自動生成プロジェクトの設計・実装担当です。
+        <div class="prompt-bar"><span>copilot-foundation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt()">全文をコピー</button></div>
+        <pre class="prompt" id="prompt">あなたは、python-pptxを使って高品質なPowerPoint資料を自動生成するための「PowerPoint生成基盤」を構築するエンジニアです。
 
-このリポジトリに、次の方針で初期構成を作成してください。
+目的は、GitHub CopilotからPowerPointを生成した際に発生しやすい、以下の問題を構造的に防ぐことです。
 
-【目的】
-- 16:9のPowerPointをPythonで再現性高く生成する
-- 内容・デザイン・レイアウト・素材・出力を分離する
-- 後からスライド種別やテーマを追加しやすくする
+- 背景色と文字色が同化する
+- スライドごとにフォントサイズや余白がばらつく
+- 図形の位置やサイズが不揃いになる
+- テキストがはみ出す
+- 1枚の情報量が過多になる
+- デザインがスライドごとに変わる
+- 「コンサル資料らしい」論理構成やレイアウトにならない
 
-【作成する構成】
-- README.md
-- requirements.txt
-- .gitignore
-- assets/images/、assets/icons/、assets/fonts/
-- data/content.yaml
-- src/main.py、src/theme.py、src/layouts.py、src/utils.py
-- tests/test_slides.py
-- output/.gitkeep
+## 基本方針
 
-【実装要件】
-1. python-pptx、PyYAML、Pillowを使用する
-2. theme.pyに色・フォント・余白・サイズを定数としてまとめる
-3. layouts.pyに表紙、タイトル＋本文、2カラムの3種類を関数として実装する
-4. content.yamlのサンプル内容から3枚のスライドを生成する
-5. main.pyは「python -m src.main」で実行でき、output/sample.pptxを出力する
-6. 画像は縦横比を保って配置し、文字が枠からはみ出しにくい処理をutils.pyに用意する
-7. testsで生成ファイルの存在、スライド枚数、各スライドのタイトルを確認する
-8. READMEに環境構築、実行、テスト、構成説明を日本語で記載する
-9. .gitignoreで.venv、__pycache__、output/*.pptxを除外する
+PowerPointの各スライドを毎回ゼロから自由生成してはいけません。以下の3層に分離してください。
 
-まず実装計画を短く提示し、その後に必要なファイルを作成してください。曖昧な点は勝手に複雑化せず、保守しやすい最小構成を優先してください。</pre>
+1. theme.py
+   - 色
+   - フォントとフォールバック
+   - フォントサイズ
+   - 余白とオブジェクト間隔
+   - 線
+   - 強調表現
+   - 背景色と文字色を組み合わせたスタイル
+   - 基本的なデザインルール
+2. components.py
+   - タイトル
+   - メッセージライン
+   - テキストボックス
+   - カード
+   - ラベル
+   - 矢印
+   - 区切り線
+   - KPI表示
+   - 図表用コンテナ
+   など、スライド内で再利用する部品
+3. layouts/
+   - 複数のcomponentsを組み合わせた「1枚のスライドの型」
+   - Copilotが座標、色、フォントを直接自由指定するのではなく、原則としてlayoutsを利用してスライドを生成する
+
+## 推奨フォルダ構成
+
+ppt-generator/
+├── template/
+│   └── consulting_template.pptx
+├── references/
+│   └── 参考にするPowerPoint資料やスライド
+├── pptxgen/
+│   ├── __init__.py
+│   ├── theme.py
+│   ├── components.py
+│   ├── renderer.py
+│   ├── validator.py
+│   └── layouts/
+│       ├── __init__.py
+│       └── 採用したレイアウトのみ作成
+├── inputs/
+│   └── slides.json
+├── outputs/
+│   └── .gitkeep
+├── tests/
+│   └── test_generation.py
+├── generate.py
+├── requirements.txt
+├── .gitignore
+└── README.md
+
+必要であれば構成は改善して構いません。ただし、過度に複雑な設計、将来用の空ファイル、不要な抽象クラスは作成しないでください。
+
+## 参考スライドの分析
+
+references/に格納したPowerPoint資料・スライドを今回のデザイン基準として利用してください。実装を始める前に参考資料を分析し、以下を整理してください。
+
+### デザインルール
+
+- スライドサイズと縦横比
+- 基本背景色
+- メインカラー、アクセントカラー、本文色、タイトル色
+- フォントと日本語フォールバック
+- タイトル、メッセージ、本文、注釈のサイズ
+- 左右上下の基本余白
+- オブジェクト間の基本間隔
+- 線の太さ
+- 角丸の程度
+- カードやボックスのデザイン
+- 強調方法
+- ページ番号、ロゴ、フッターの扱い
+
+参考資料の値をそのままコピーする必要はありません。複数スライドを比較し、再利用可能な共通ルールとして抽象化してください。
+
+## スライド基本形の抽出
+
+参考スライドを単に模写するのではなく、レイアウトパターンに分類してください。候補例は次のとおりです。
+
+- 2カラム比較
+- 3カラム整理
+- Before / After
+- プロセス
+- KPI
+- 2×2マトリクス
+- グラフ＋示唆
+- エグゼクティブサマリ
+
+この一覧をそのまま採用する必要はありません。参考資料を分析した結果、頻繁に使われ、汎用性が高く、コンサル資料として再利用価値が高いレイアウトを優先してください。
+
+レイアウト数は最初から増やしすぎず、最初に実装するのは3〜5種類としてください。layouts/には採用したレイアウトだけを作成し、未実装レイアウトの空ファイルは作成しないでください。
+
+各レイアウトについて、以下を定義してください。
+
+- どのような目的で使うか
+- どのような情報に向いているか
+- 利用するcomponents
+- 各エリアの基本配置
+- 想定する最大文字量と項目数
+- 情報量を超えた場合の分割方針
+
+## コンサル資料としての基本原則
+
+各スライドは原則として、次の構造にしてください。
+
+- タイトル
+- そのページで伝えたいメッセージ
+- メッセージを裏付ける図、表、数値、情報
+
+タイトルは単なるテーマ名ではなく、可能な範囲でスライドの内容を明確にしてください。情報を詰め込むことで解決しようとせず、情報量が多すぎる場合はスライド分割を優先してください。
+
+装飾よりも、情報の階層、視線誘導、比較のしやすさ、メッセージの明確さを優先してください。
+
+## 色の安全性
+
+背景色と文字色を個別に自由指定する設計は禁止します。例えば、次のように背景色と文字色をセットにしたスタイルとして管理してください。
+
+- DARK_PANEL
+- LIGHT_PANEL
+- ACCENT_PANEL
+- NEUTRAL_PANEL
+
+悪い例：
+shape.fill = blue
+text.color = blue
+
+良い例：
+style = DARK_PANEL
+fill = navy
+text = white
+
+この対応関係をtheme.pyで一元管理し、componentsとlayoutsから同じ定義を利用してください。
+
+## components.pyの設計
+
+python-pptxの低レベルAPIを、各スライド生成処理から直接大量に呼ばないでください。例えば、次のような高レベル関数を用意してください。
+
+- add_title()
+- add_message()
+- add_text_block()
+- add_card()
+- add_kpi_card()
+- add_arrow()
+- add_section_label()
+- add_chart_container()
+
+位置、フォント、色、余白などのデザインルールは、できる限りcomponents内部に隠してください。同じ処理を複数のlayoutへコピーせず、共通componentへ集約してください。
+
+## layoutsの設計
+
+各layoutは、1枚のスライド全体を構成する関数として作成してください。
+
+例：
+- render_before_after(slide, data)
+- render_two_column(slide, data)
+- render_process(slide, data)
+
+layouts内では低レベルな色、フォント、座標指定を極力行わず、componentsを組み合わせて構築してください。
+
+## slides.jsonの設計
+
+slides.jsonには、原則として文章、数値、画像パス、layout_idだけを記述してください。色、フォント、座標、サイズなどのデザイン指定は入力データに持たせず、theme、components、layouts側で管理してください。
+
+入力値を検証し、未知のlayout_id、必須項目の不足、上限を超える文字量や項目数について、理解しやすいエラーまたは警告を出してください。
+
+## validator.py
+
+最低限、以下をチェックできるようにしてください。
+
+- スライド外へのはみ出し
+- 最小フォントサイズ違反
+- タイトルの長さ
+- 本文量過多
+- 定義外カラーの使用
+- オブジェクト同士の明らかな重なり
+- スライドごとの異常な情報量
+- 可能であれば背景色と文字色のコントラスト不足
+
+重なり検出では、親コンテナと内部要素、背景図形、装飾要素など、意図的な重なりを除外できるようにしてください。検査基準値はvalidator.py内に分散させず、theme.pyまたは設定オブジェクトで管理してください。
+
+validatorの実装に過度な時間を使わず、まず生成品質を優先してください。
+
+## template.pptx
+
+template/consulting_template.pptxが存在する場合は、それをベースに生成してください。既存テンプレートから、スライドサイズ、スライドマスター、フォント、基本レイアウト、ロゴ、フッターなど、利用可能なものはできるだけ活用してください。
+
+既存テンプレートと参考スライドのデザインが矛盾する場合は勝手に決定せず、相違点と推奨案を提示して確認を求めてください。決定した優先順位と理由はREADME.mdに記録してください。
+
+## 実装ルール
+
+- Pythonを使用する
+- PowerPoint生成にはpython-pptxを使用する
+- コードを必要以上に複雑化しない
+- 再利用性を優先する
+- 色、フォント、座標のハードコードを各ファイルに分散させない
+- マジックナンバーを極力減らす
+- 同じ処理を複数layoutにコピーしない
+- 可能な限り共通componentへ集約する
+- PowerPoint上で後から個別編集できる状態を維持する
+- 画像化したスライドを貼り付ける方式にはしない
+- 日本語フォントは第一候補とフォールバック候補をtheme.pyで定義する
+- 特定環境にしか存在しないフォントを前提にしない
+
+## 作業手順
+
+### Step 1
+現在のリポジトリとreferences/、template/を確認する。
+
+### Step 2
+参考スライドを分析し、デザインルール、レイアウトパターン、共通部品を整理する。この時点では大量のコードを書かない。
+
+### Step 3
+分析結果をもとに、採用予定のフォルダ構成、theme.py、components.py、layouts、slides.jsonの設計方針を提示する。
+
+Step 3の設計案を提示した時点で作業を停止し、ユーザーの承認を待ってください。承認されるまでStep 4以降のファイル作成・変更は行わないでください。
+
+### Step 4
+承認後、代表的な3〜5レイアウトを最小限の構成で実装する。
+
+### Step 5
+サンプル資料を5枚程度生成する。最低でもサマリ、2カラム、Before / After、プロセス、KPIまたはグラフを含める。
+
+### Step 6
+生成したPowerPointを確認し、必要に応じてレイアウト、余白、文字サイズなどを修正する。利用可能な環境では各スライドを画像としてレンダリングし、目視確認する。
+
+### Step 7
+validatorを追加する。
+
+### Step 8
+README.mdを作成し、フォルダ構成、各ファイルの役割、新しいlayoutとcomponentの追加方法、PowerPoint生成方法、検証方法、デザインルールを記載する。
+
+## 完了条件
+
+- サンプルPowerPointがエラーなく生成される
+- 5種類の代表スライドが含まれる
+- validatorの重大エラーが0件である
+- 各スライドでタイトル、メッセージ、根拠情報の階層が確認できる
+- テキストのはみ出しや意図しない図形の重なりがない
+- 背景色と文字色に十分なコントラストがある
+- 生成物がPowerPoint上で個別編集できる
+- README.mdの手順だけで環境構築、生成、検証を再現できる
+
+## 最重要事項
+
+最初から完成形を想像して大量のレイアウトや抽象クラスを作らないでください。参考資料から実際によく使うパターンを抽出し、それを再利用可能な形にすることを優先してください。
+
+最も重要なのは、「Copilotが毎回PowerPointを自由描画する」のではなく、「Copilotが決められたデザインシステムとレイアウトライブラリを利用して資料を生成する」状態を作ることです。
+
+実装前に、まず参考資料を分析した結果と、採用予定のフォルダ構成、レイアウト一覧、デザインルールを提示してください。その後はStep 3で停止し、ユーザーの承認を待ってください。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> 生成後は、PowerPointを開いて文字切れ・画像比率・フォント置換を目視確認してください。python-pptxは編集可能な.pptx生成に向きますが、最終的な見栄えの確認はPowerPoint本体で行うのが確実です。</p>
+      <p class="note"><strong>使い方:</strong> リポジトリ直下でCopilot Chatを開き、全文を貼り付けます。CopilotはStep 3で停止するため、設計内容を確認してから実装を承認してください。</p>
     </section>
   </main>
 
@@ -209,7 +442,7 @@
       try {
         await navigator.clipboard.writeText(document.getElementById('prompt').innerText);
         button.textContent = 'コピー済み';
-        setTimeout(() => button.textContent = 'コピー', 1800);
+        setTimeout(() => button.textContent = '全文をコピー', 1800);
       } catch (_) {
         button.textContent = '選択してコピー';
       }
