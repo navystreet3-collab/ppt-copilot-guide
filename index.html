@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ja">
 <head>
@@ -149,7 +150,10 @@
 ├── <span class="dir">design/</span>
 │   ├── <span class="file">reference_analysis.md</span>
 │   └── <span class="file">design_spec.md</span>
+├── <span class="dir">tools/</span>
+│   └── <span class="file">analyze_references.py</span>
 ├── <span class="dir">pptxgen/</span>
+│   ├── <span class="file">__init__.py</span>
 │   ├── <span class="file">theme.py</span>
 │   ├── <span class="file">components.py</span>
 │   ├── <span class="file">renderer.py</span>
@@ -163,7 +167,7 @@
 │   └── <span class="file">.gitkeep</span>
 └── <span class="file">generate.py</span></pre>
         <div class="principles">
-          <div class="principle"><strong>templateとreferencesを分ける</strong><span>生成の土台と、分析用の見本を混同しない。</span></div>
+          <div class="principle"><strong>templateとreferencesを保護する</strong><span>生成の土台と分析用の見本は読み取り専用とし、出力先と分ける。</span></div>
           <div class="principle"><strong>PDFを基本にPPTXで補完</strong><span>見た目の視覚分析と、可能な場合の構造分析を組み合わせる。</span></div>
           <div class="principle"><strong>内容とデザインを分ける</strong><span>入力には内容だけを置き、色・書体・配置は基盤側で管理する。</span></div>
           <div class="principle"><strong>標準機能で検証する</strong><span>テストはunittestを使い、追加依存を最小限にする。</span></div>
@@ -178,14 +182,17 @@
         <article class="role" data-mark="PKG"><code>requirements.txt</code><p>python-pptxを基本とし、明確に必要な依存だけを固定。</p></article>
         <article class="role" data-mark="IGN"><code>.gitignore</code><p>仮想環境、キャッシュ、生成した.pptxをGit対象外にする。</p></article>
         <article class="role" data-mark="COP"><code>.github/copilot-instructions.md</code><p>設計の要点をGitHub Copilotへ常時適用する短いルール。</p></article>
-        <article class="role" data-mark="TPL"><code>template/</code><p>スライドマスター、ロゴ、フッターなど生成時の土台。</p></article>
-        <article class="role" data-mark="REF"><code>references/</code><p>参考にするPDFやPPTXを手動で置き、構造と見た目を分析。</p></article>
-        <article class="role" data-mark="IN"><code>inputs/slides.json</code><p>文章、数値、画像パス、layout_idなど内容だけを記述。</p></article>
+        <article class="role" data-mark="TPL"><code>template/</code><p>スライドマスター、ロゴ、フッターなど生成時の土台。元ファイルは上書きしない。</p></article>
+        <article class="role" data-mark="REF"><code>references/</code><p>参考にするPDFやPPTXを読み取り専用で置き、構造と見た目を分析。</p></article>
+        <article class="role" data-mark="ANA"><code>design/reference_analysis.md</code><p>参考資料から確認した共通ルール、差異、確認できなかった制約を記録。</p></article>
+        <article class="role" data-mark="SPEC"><code>design/design_spec.md</code><p>設計仕様の正本。変更時は先に更新し、theme.pyとテストを同期。</p></article>
+        <article class="role" data-mark="TOOL"><code>tools/analyze_references.py</code><p>参考PPTXの色、フォントサイズ、座標、図形サイズを機械分析。</p></article>
+        <article class="role" data-mark="IN"><code>inputs/slides.json</code><p>文章、数値、画像パス、layout_idなど内容だけを記述。生成処理からは変更しない。</p></article>
         <article class="role" data-mark="UI"><code>pptxgen/theme.py</code><p>色、書体、文字サイズ、間隔、semantic styleを一元管理。</p></article>
         <article class="role" data-mark="CMP"><code>pptxgen/components.py</code><p>指定領域へ統一された部品を描画し、低レベルAPIを隠蔽。</p></article>
         <article class="role" data-mark="LYT"><code>pptxgen/layouts/</code><p>座標と領域配置、layout固有の情報量上限を管理。</p></article>
         <article class="role" data-mark="TST"><code>tests/test_generation.py</code><p>標準のunittestで生成、layout解決、validator結果を確認。</p></article>
-        <article class="role" data-mark="OUT"><code>outputs/</code><p>生成したPowerPointを置く場所。.gitkeepのみ管理対象。</p></article>
+        <article class="role" data-mark="OUT"><code>outputs/</code><p>生成したPowerPointを新しいファイルとして保存する場所。.gitkeepのみ管理対象。</p></article>
       </div>
     </section>
 
@@ -205,7 +212,7 @@
         <article class="role" data-mark="＋"><a href="https://www.mitsubishielectric.co.jp/investors/data/integrated-report/pdf/2025/integrated-report2025-jp.pdf" target="_blank" rel="noopener noreferrer"><code>統合報告書2025</code></a><p>ブランド表現と図解の補助資料。冊子レイアウトの直用は避ける。</p></article>
         <article class="role" data-mark="↗"><a href="https://www.mitsubishielectric.co.jp/investors/data/management-report/" target="_blank" rel="noopener noreferrer"><code>IR Day公式一覧</code></a><p>リンク切れや更新時に後継資料を確認するための一覧。</p></article>
       </div>
-      <p class="note"><strong>推奨:</strong> まず01〜06をダウンロードし、余裕があれば07〜10を追加してください。公開資料はPDFのみでも構いません。手元に参考PPTXがある場合は、同じreferences/へ追加すると座標やフォントサイズの機械分析もできます。</p>
+      <p class="note"><strong>推奨:</strong> 01の新中期経営戦略を含む3〜6資料を目安に、要約・比較・プロセス・グラフなど異なる表現を確認できる資料を選んでください。資料数より代表性を優先します。公開資料はPDFのみでも構いません。手元に参考PPTXがある場合は、同じreferences/へ追加すると座標やフォントサイズの機械分析もできます。</p>
     </section>
 
     <section aria-labelledby="prompt-title">
@@ -298,11 +305,12 @@ PyYAMLやPillowを前提として追加しないでください。入力は標�
 ## templateとreferencesの役割分担
 
 - このプロンプトを実行する前にreferences/を作成し、ページ上部の「参考資料ダウンロード」から選んだ公式PDFを手動で格納してください。
-- まずIR Day 2026の新中期経営戦略を含む6資料以上を入れることを推奨します。資料が多い場合も、単一資料や特殊な1ページだけを基準にしないでください。
+- 新中期経営戦略を含む3〜6資料を目安に、要約、比較、プロセス、グラフなど異なる表現を確認できる資料を選んでください。資料数より代表性を優先し、単一資料や特殊な1ページだけを基準にしないでください。
 - 公開資料はPDFだけでも構いません。CopilotではPDFの見た目、情報密度、視線誘導、カード、表、グラフなどを視覚分析してください。
 - 手元に同内容または参考になるPPTXがある場合はreferences/へ追加し、python-pptxで色、フォントサイズ、座標、図形サイズを機械分析してください。
 - template/consulting_template.pptxは、実際の生成時に読み込む土台です。スライドサイズ、マスター、既存レイアウト、ロゴ、フッターなどを可能な範囲で継承してください。
 - references/は分析用の見本であり、生成ベースとして直接使用しません。資料本文、図、写真、ロゴを転載せず、抽象化したデザインルールとレイアウトパターンだけを利用してください。
+- template/、references/、inputs/は読み取り専用として扱い、上書き、編集、移動、削除をしないでください。生成物はoutputs/へ新しいファイル名で保存し、既存の生成物も明示的な許可なく上書きしないでください。
 
 templateとreferencesが矛盾する場合は、templateのブランド必須要素を優先し、referencesの汎用的なレイアウト表現を組み合わせてください。重大な矛盾は勝手に決めず、差異と推奨案を示してください。PDFを視覚的に確認できない場合は、その制約を明記し、確認したと仮定して進めないでください。
 
@@ -460,7 +468,7 @@ slides.jsonには、原則として文章、数値、画像パス、layout_idだ
 - 定義外カラーの使用
 - オブジェクト同士の明らかな重なり
 - スライドごとの異常な情報量
-- 可能であれば背景色と文字色のコントラスト不足
+- 背景色と文字色のコントラスト不足。目安は通常文字4.5:1以上、大きな文字3:1以上とする
 
 重なり検出では、親コンテナと内部要素、背景図形、装飾要素など、意図的な重なりを除外できるようにしてください。検査基準値はvalidator.py内に分散させず、theme.pyまたは設定オブジェクトで管理してください。
 
@@ -488,29 +496,36 @@ templateは実際の生成ベース、referencesはデザイン分析用の見�
 - 画像化したスライドを貼り付ける方式にはしない
 - 日本語フォントは第一候補とフォールバック候補をtheme.pyで定義する
 - 特定環境にしか存在しないフォントを前提にしない
+- 実行環境で利用可能なフォントを確認し、候補順で採用する。自動判定できない場合は第一候補を設定し、必要フォントと代替手順をREADME.mdへ記録する
 - 文字量超過時はフォント縮小よりスライド分割を優先する
+- template/、references/、inputs/は変更せず、生成物はoutputs/へ新しいファイルとして保存する
+- 生成後のPPTXをpython-pptxで再度開き、ファイルとして読み込めることを確認する
+- 入力資料や生成物を外部サービスへ送信しない
 
 ## design_spec.md
 
-design/design_spec.mdを設計上の正とし、architecture、theme/components/layoutsの責務、デザイントークン、三菱電機スタンダードのカラー、semantic style、typography、spacing、7種類のlayout、各layoutの情報量上限、text overflow方針、templateとreferencesの優先順位、validator方針を記録してください。
+design/design_spec.mdを設計仕様の正本とし、architecture、theme/components/layoutsの責務、デザイントークン、三菱電機スタンダードのカラー、semantic style、typography、spacing、7種類のlayout、各layoutの情報量上限、text overflow方針、templateとreferencesの優先順位、validator方針を記録してください。theme.pyはその実行可能な実装です。デザインを変更するときはdesign_spec.mdを先に更新し、theme.pyとテストを同期してください。
 
 ## .github/copilot-instructions.md
 
 初期構築後も同じルールが常時適用されるよう、.github/copilot-instructions.mdを作成してください。design_spec.mdの全文コピーではなく、次の要点を短く記載します。
 
 - PowerPoint生成はpython-pptxを使う
-- design/design_spec.mdを設計上の正とする
+- design/design_spec.mdを設計仕様の正本、theme.pyをその実装とする
 - 色とフォントはtheme、部品描画はcomponents、座標と配置はlayoutsへ分離する
 - contentとdesignを分離し、slides.jsonにデザイン指定を入れない
 - 新layoutを安易に追加せず、まず既存layout/componentを再利用する
 - スライドを画像化せず、PowerPoint上で個別編集できる状態を維持する
 - 文字量超過時はフォント縮小よりスライド分割を優先する
+- template/、references/、inputs/を変更せず、生成物はoutputs/へ新しいファイルとして保存する
+- 生成後のPPTXを再度開いてファイルの健全性を確認する
+- 入力資料や生成物を外部サービスへ送信しない
 - 変更後はunittestとvalidatorを実行する
 
 ## 作業手順
 
 ### Step 1
-現在のリポジトリ、template/、references/を確認する。references/が存在しない、または空の場合は実装を始めず、参考資料の手動配置を依頼する。
+現在の作業フォルダ、利用可能な保存先、template/、references/を確認する。作業フォルダはGit管理されていなくてもよい。references/が存在しない、または空の場合は実装を始めず、参考資料の手動配置を依頼する。
 
 ### Step 2
 references/のPDFを視覚分析し、PPTXがある場合はtools/analyze_references.pyからpython-pptxで機械分析する。デザインルール、レイアウトパターン、共通部品を整理し、この時点では大量のコードを書かない。
@@ -519,13 +534,13 @@ references/のPDFを視覚分析し、PPTXがある場合はtools/analyze_refere
 分析結果をdesign/reference_analysis.mdへまとめ、今回の仕様と統合したdesign/design_spec.mdを作成する。
 
 ### Step 4
-theme.py、components.pyと、原則7種類のlayoutを最小限の構成で実装する。
+theme.py、components.pyと、代表的な3種類のlayoutを最小限の構成で実装する。最初の3種類は、主要な部品と検証観点を広く確認できるexecutive_summary、process、chart_insightを基本とする。参考資料との適合性から別の3種類が適切な場合は、その理由をreference_analysis.mdへ記録する。
 
 ### Step 5
-7種類の初期layoutを1枚ずつ確認できる日本語のサンプル資料を生成する。
+最初の3種類を1枚ずつ使った日本語のテスト資料を生成する。生成後のPPTXをpython-pptxで再度開き、利用可能な環境では各スライドを画像としてレンダリングして、余白、文字サイズ、はみ出し、重なり、視線誘導を目視確認する。問題があれば、この段階でthemeとcomponentsを修正する。
 
 ### Step 6
-生成したPowerPointを確認し、必要に応じてレイアウト、余白、文字サイズなどを修正する。利用可能な環境では各スライドを画像としてレンダリングし、目視確認する。
+最初の3種類で基盤の品質を確認できたら、残り4種類のlayoutを実装し、7種類を1枚ずつ確認できるサンプル資料を生成する。
 
 ### Step 7
 validatorを追加する。
@@ -537,13 +552,14 @@ unittestを追加し、`python -m unittest discover -s tests` で生成、7種�
 README.mdと.github/copilot-instructions.mdを作成または更新し、フォルダ構成、各ファイルの役割、新しいlayoutとcomponentの追加方法、PowerPoint生成方法、検証方法、デザインルールを記載する。
 
 ### Step 10
-最終的にもう一度サンプルを生成し、validatorとunittestを実行する。
+最終的にもう一度サンプルを生成してPPTXを再度開き、validatorとunittestを実行する。利用可能な環境ではレンダリングした全スライドも目視確認する。
 
 今回は設計方針が決まっているため、Step 3で承認待ち停止はせず、重大な矛盾や不足がない限りStep 10まで進めてください。
 
 ## 完了条件
 
 - サンプルPowerPointがエラーなく生成される
+- 最初の3種類でテスト生成と目視確認を行ってから、残りのlayoutを実装している
 - 原則7種類の初期layoutと、それぞれを確認できるサンプルスライドが含まれる
 - validatorの重大エラーが0件である
 - `python -m unittest discover -s tests` が成功する
@@ -551,6 +567,8 @@ README.mdと.github/copilot-instructions.mdを作成または更新し、フォ�
 - テキストのはみ出しや意図しない図形の重なりがない
 - 背景色と文字色に十分なコントラストがある
 - 生成物がPowerPoint上で個別編集できる
+- 生成後のPPTXをpython-pptxで再度開いてもエラーが発生しない
+- template/、references/、inputs/および既存の生成物が上書きされていない
 - slides.jsonに色、フォント、座標が含まれていない
 - design/design_spec.mdとdesign/reference_analysis.mdが存在する
 - references/に置いた複数資料の分析結果と、確認できなかった制約がreference_analysis.mdに記録されている
@@ -565,7 +583,7 @@ README.mdと.github/copilot-instructions.mdを作成または更新し、フォ�
 
 参考資料の分析結果、採用したフォルダ構成、レイアウト一覧、デザインルール、依存関係、テスト結果を記録し、生成、検証、READMEと常設Copilotルールの整備まで完了してください。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> 上のリンクから参考PDFを手動でダウンロードし、references/へ格納してからCopilot Chatへ全文を貼り付けます。初期構築後は.github/copilot-instructions.mdが常設ルールとして機能します。</p>
+      <p class="note"><strong>使い方:</strong> 上のリンクから代表性の異なる参考PDFを3〜6資料選び、references/へ格納してから作業フォルダでCopilot Chatへ全文を貼り付けます。Git管理は必須ではありません。初期構築後は.github/copilot-instructions.mdが常設ルールとして機能します。</p>
     </section>
 
     <div class="product-heading" id="excel">
