@@ -140,8 +140,7 @@
 │   └── <span class="file">copilot-instructions.md</span>
 ├── <span class="dir">assets/</span>
 │   ├── <span class="dir">images/</span>
-│   ├── <span class="dir">icons/</span>
-│   └── <span class="dir">fonts/</span>
+│   └── <span class="dir">icons/</span>
 ├── <span class="dir">template/</span>
 │   └── <span class="file">consulting_template.pptx</span>
 ├── <span class="dir">references/</span>
@@ -155,6 +154,7 @@
 ├── <span class="dir">pptxgen/</span>
 │   ├── <span class="file">__init__.py</span>
 │   ├── <span class="file">theme.py</span>
+│   ├── <span class="file">geometry.py</span>
 │   ├── <span class="file">components.py</span>
 │   ├── <span class="file">renderer.py</span>
 │   ├── <span class="file">validator.py</span>
@@ -182,6 +182,7 @@
         <article class="role" data-mark="PKG"><code>requirements.txt</code><p>python-pptxを基本とし、明確に必要な依存だけを固定。</p></article>
         <article class="role" data-mark="IGN"><code>.gitignore</code><p>仮想環境、キャッシュ、生成した.pptxをGit対象外にする。</p></article>
         <article class="role" data-mark="COP"><code>.github/copilot-instructions.md</code><p>設計の要点をGitHub Copilotへ常時適用する短いルール。</p></article>
+        <article class="role" data-mark="AST"><code>assets/</code><p>スライドで使用する画像・アイコンを格納。フォントファイルの同梱は前提にしない。</p></article>
         <article class="role" data-mark="TPL"><code>template/</code><p>スライドマスター、ロゴ、フッターなど生成時の土台。元ファイルは上書きしない。</p></article>
         <article class="role" data-mark="REF"><code>references/</code><p>参考にするPDFやPPTXを読み取り専用で置き、構造と見た目を分析。</p></article>
         <article class="role" data-mark="ANA"><code>design/reference_analysis.md</code><p>参考資料から確認した共通ルール、差異、確認できなかった制約を記録。</p></article>
@@ -189,6 +190,7 @@
         <article class="role" data-mark="TOOL"><code>tools/analyze_references.py</code><p>参考PPTXの色、フォントサイズ、座標、図形サイズを機械分析。</p></article>
         <article class="role" data-mark="IN"><code>inputs/slides.json</code><p>文章、数値、画像パス、layout_idなど内容だけを記述。生成処理からは変更しない。</p></article>
         <article class="role" data-mark="UI"><code>pptxgen/theme.py</code><p>色、書体、文字サイズ、間隔、semantic styleを一元管理。</p></article>
+        <article class="role" data-mark="GEO"><code>pptxgen/geometry.py</code><p>Boxと12カラム論理Gridを扱い、themeの余白・gutterから主要領域の座標を計算。</p></article>
         <article class="role" data-mark="CMP"><code>pptxgen/components.py</code><p>指定領域へ統一された部品を描画し、低レベルAPIを隠蔽。</p></article>
         <article class="role" data-mark="LYT"><code>pptxgen/layouts/</code><p>座標と領域配置、layout固有の情報量上限を管理。</p></article>
         <article class="role" data-mark="TST"><code>tests/test_generation.py</code><p>標準のunittestで生成、layout解決、validator結果を確認。</p></article>
@@ -240,6 +242,10 @@
 
 # 1. 実行前確認と進め方
 
+現在VS Codeで開いているworkspace rootを、このPowerPoint生成基盤のproject rootとして扱ってください。
+すでにppt-generator等のproject folderを開いている場合、その配下にさらにppt-generator/を作成してはいけません。
+後述のフォルダツリーにある「ppt-generator/」は、現在のproject rootを意味します。
+
 最初に現在のworkspaceを確認してください。
 
 確認対象：
@@ -249,15 +255,22 @@
 - references/
 - inputs/
 - 既存のpptxgen/、design/、tests/、README.md
+- .github/copilot-instructions.md
+- .github/instructions/
+- AGENTS.md
+- その他既存のAI向けinstruction
 - 既存ファイルを上書きすると影響があるか
 
 既存実装がある場合は、全面破棄せず、今回のarchitectureへ安全に統合してください。
+既存のCopilot/Agent向けinstructionがある場合は、今回のPowerPointルールで全面置換せず、競合を確認して既存ルールを保持しながら統合してください。
 
 技術的に実行不能、または結果を大きく左右する重大な情報欠落がある場合だけ停止してください。
 それ以外の軽微な不足や差異は、後述の優先順位に従って妥当な判断で進め、判断理由をdesign/design_spec.mdへ記録してください。
 
-template/、references/、inputs/は読み取り専用として扱い、上書き、編集、移動、削除をしないでください。
-生成物はoutputs/へ新しいファイル名で保存し、既存生成物も明示的な指示なく上書きしないでください。
+template/、references/、inputs/に既存のユーザーファイルがある場合、それらは読み取り専用として扱い、上書き、編集、移動、削除をしないでください。
+inputs/slides.jsonが存在する場合は変更しないでください。存在しない場合は、初期動作確認用としてinputs/sample_slides.jsonを新規作成してよいものとします。
+サンプル生成にはsample_slides.jsonを使用し、ユーザー入力データをテスト目的で書き換えないでください。
+生成したPowerPointなどの成果物はoutputs/へ新しいファイル名で保存し、既存生成物も明示的な指示なく上書きしないでください。
 
 # 2. 設計判断の優先順位
 
@@ -368,6 +381,9 @@ marginやgutterの値はtheme.pyを参照してください。
 ppt-generator/
 ├── .github/
 │   └── copilot-instructions.md
+├── assets/
+│   ├── images/
+│   └── icons/
 ├── template/
 │   └── consulting_template.pptx
 ├── references/
@@ -395,7 +411,8 @@ ppt-generator/
 │       ├── matrix_2x2.py
 │       └── chart_insight.py
 ├── inputs/
-│   └── slides.json
+│   ├── slides.json
+│   └── sample_slides.json
 ├── outputs/
 │   └── .gitkeep
 ├── tests/
@@ -591,10 +608,13 @@ DADSの12カラムグリッドを「主要領域の論理Grid」として参考�
 - 3 + 6 + 3
 
 SlideGridはmarginとgutterをtheme.pyから受け取り、column spanからBoxを返せるようにしてください。
+column番号は1〜12の1-basedとし、span(start_col, column_count)の形式にしてください。
 
-例となる意図：
-- main = grid.span(1, 8)
-- side = grid.span(9, 4)
+例：
+- main = grid.span(1, 8) は「1列目から8列分」
+- side = grid.span(9, 4) は「9列目から4列分」
+
+spanの第2引数をend columnとして解釈しないでください。
 
 ただし、全shapeを12カラムへ強制的にsnapさせないでください。
 Gridが拘束するのは主にスライドの主要領域です。
@@ -920,6 +940,7 @@ DADSそのものを再現しているのではなく、PowerPoint向けに再解
 # 20. .github/copilot-instructions.md
 
 初期構築後も重要ルールが常時適用されるよう、短くまとめてください。
+既存の.github/copilot-instructions.mdや他のAI向けinstructionがある場合は、それらを削除・全面置換せず、既存ルールを保持しながら今回のPowerPointルールを統合してください。
 
 最低限：
 - design/design_spec.mdを設計仕様の正本とする
@@ -1034,8 +1055,9 @@ README.mdへ最低限記載：
 - PPTX再オープン
 - validator ERROR=0
 - unittest成功
-- inputs/template/references非変更
-- outputs以外への生成物なし
+- 既存のinputs/template/references非変更
+- 生成したPPTXなどの成果物がoutputs/以外へ保存されていない
+- __pycache__、.pyc、テスト用cacheなど通常の実行時一時ファイルは成果物扱いしない
 - design_specと実装の整合
 - READMEだけで再現可能
 
@@ -1059,7 +1081,8 @@ README.mdへ最低限記載：
 - テキストのはみ出しがない
 - 意図しない重大な重なりがない
 - 背景と文字に十分なcontrastがある
-- template/、references/、inputs/が変更されていない
+- template/、references/、既存のinputsユーザーファイルが変更されていない
+- slides.jsonが存在しない場合に限り、初期検証用のinputs/sample_slides.jsonが新規作成されている
 - design/reference_analysis.mdが存在する
 - design/design_spec.mdが存在する
 - .github/copilot-instructions.mdが存在する
