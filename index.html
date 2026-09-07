@@ -1539,6 +1539,233 @@ Step 11：git diffまたは同等の差分確認を行う。
       <p class="note"><strong>推奨順序:</strong> Safe Drawing → Structural QA → PowerPoint Native Render → Visual QA の順で強化します。PowerPointが利用できない環境ではNative Renderを偽装せず、利用不可として記録します。</p>
     </section>
 
+    <section aria-labelledby="generation-prompt-title">
+      <div class="section-head"><div class="num">06</div><div><h2 id="generation-prompt-title">実際の資料生成プロンプト</h2><p>04・05で整備した基盤を使い、Excelなどの業務資料から実際のPowerPointを作るための日常運用向けプロンプトです。以下は営業会議資料の例です。</p></div></div>
+      <div class="prompt-shell">
+        <div class="prompt-bar"><span>copilot-presentation-generation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('generation-prompt', this)">全文をコピー</button></div>
+        <pre class="prompt" id="generation-prompt">inputs/sales_analysis.xlsx を主な情報源として、営業会議向けのPowerPointを作成してください。
+
+# 目的
+
+売上状況と主要課題を共有し、次の営業アクションを明確にすることです。
+
+対象読者は営業部長・課長です。
+5〜7枚程度を目安としてください。
+
+# 使用する既存基盤
+
+既存のPowerPoint生成基盤を使用してください。
+
+特に以下を正本・再利用対象として扱ってください。
+
+- design/design_spec.md
+- pptxgen/theme.py
+- pptxgen/geometry.py
+- pptxgen/components.py
+- pptxgen/layouts/
+- pptxgen/renderer.py
+- pptxgen/validator.py
+- LAYOUT_REGISTRY
+- Data Contract
+- .github/copilot-instructions.md
+
+新しいPowerPoint生成frameworkを作らず、既存基盤のlayout / componentを再利用してください。
+
+# template
+
+template/consulting_template.pptx が存在する場合は、design_spec.mdのTemplate Contractに従ってください。
+
+- background / master / fixed elementsを保持する
+- logo / footer / legal text / reserved areaを通常の生成componentで覆わない
+- templateを編集・上書きしない
+- templateを生成コンテンツの色・font・spacing・content layoutのDesign Systemとして自動解析しない
+- 生成コンテンツのstyleはdesign_spec.md / theme.pyを使用する
+
+Template Contractが未整備の場合は、既存04の設計方針に従い、必要最小限の確認だけ行ってください。
+
+# references
+
+references/ は既に分析済みのデザイン参考資料として扱ってください。
+
+今回の資料作成のために、
+
+- 移動
+- 改名
+- 再配置
+- 全件再分析
+- 再ダウンロード
+
+をしないでください。
+
+既存のdesign/reference_analysis.mdとdesign/design_spec.mdを優先して使用してください。
+今回の資料作成に不可欠な情報がreference_analysis.mdに存在しない場合だけ、必要最小限の追加確認を行ってください。
+
+# Excelの扱い
+
+inputs/sales_analysis.xlsx は読み取り専用です。
+
+- 元Excelを編集、保存、上書きしない
+- Excelに存在しない事実・数値を作らない
+- 数値の単位、期間、対象範囲を確認してから使用する
+- 複数sheetがある場合は、最初にsheet名、header、used range等を確認し、資料目的に関係するsheetを優先して分析する
+- 大きなworkbookを無条件に全セル処理しない
+- formulaの計算結果を取得できない場合は推測せず、その制約を明示して対象数値を使用しない
+- openpyxl等を使用する場合も読み取り専用とし、既存の依存管理方針に従う
+- 入力データに矛盾や欠損がある場合は、都合よく補完しない
+
+致命的でない欠損は、利用可能な事実だけで資料を構成してください。
+資料の結論が変わるほど重大な不足・矛盾がある場合だけ停止して報告してください。
+
+# Step 1：Excel分析
+
+まずExcelの内容を確認し、今回の資料で使用できる事実・数値・課題を整理してください。
+
+単なる表の転記ではなく、
+
+- 何が重要か
+- 何が変化しているか
+- どこに課題があるか
+- 読者が次に何を判断・実行すべきか
+
+を考えてください。
+
+Excelのセル色やExcel上の配置をPowerPointのデザインとして直接再現しないでください。
+
+# Step 2：Slide Plan
+
+PowerPointを描画する前に、次を決定してください。
+
+1. 資料全体のストーリー
+2. 各スライドのtitle
+3. 各スライドのmessage
+4. messageを裏付けるevidence
+5. 使用する既存layout_id
+
+5〜7枚程度を目安に、1スライド1メッセージとしてください。
+
+既存layoutで表現できる場合は、新しいlayoutを追加しないでください。
+
+情報量が多い場合は、文字を極端に小さくせず、内容整理またはスライド分割を優先してください。
+
+# Step 3：slides JSON
+
+Slide Planを既存Data Contractへ変換し、今回用のslides JSONを新規ファイルとして作成してください。
+
+既存のinputs/slides.jsonや他のユーザーinputを上書きしないでください。
+
+保存先について既存プロジェクトの慣例がある場合はそれに従ってください。
+明確な慣例がない場合は、inputs/slides_sales_meeting.json のように今回用途が分かる新規ファイル名を使用してください。
+
+slides JSONには内容だけを持たせてください。
+
+含めてよいもの：
+- layout_id
+- title
+- message
+- heading
+- body
+- bullets
+- KPI
+- chart data
+- insight
+- source
+- image path
+- layout Data Contractで許可された内容項目
+
+含めないもの：
+- x / y
+- width / height
+- font_size
+- font_name
+- text_color
+- fill_color
+- line_color
+- その他の直接的なデザイン指定
+
+# Step 4：PowerPoint生成
+
+作成したslides JSONから既存renderer / layout / componentを使ってPowerPointを生成してください。
+
+生成物はoutputs/へ新しいファイル名で保存してください。
+
+例：
+outputs/sales_meeting.pptx
+
+既存生成物を明示的な指示なく上書きしないでください。
+
+# Step 5：品質検証
+
+生成後、既存の品質検証フローを実行してください。
+
+最低限：
+
+1. validator
+2. python -m unittest discover -s tests
+3. 生成PPTXの再オープン確認
+4. 利用可能ならPowerPoint Native Render
+5. 利用可能ならVisual QA
+
+Visual QAでは特に以下を確認してください。
+
+- text overflow
+- 意図しないShape overlap
+- colored shapeの欠け
+- 白背景TextBoxによる隠れ
+- alignment
+- margin / padding
+- templateのreserved area侵入
+- chart / label / annotationの衝突
+- 極端な情報密度
+
+Visual QAが実行できない場合は、実行したと偽装せず既存のstatusルールに従ってください。
+
+# Step 6：必要な修正
+
+品質上の問題が見つかった場合は、原則として今回のslides JSON、または再利用性がある問題なら既存component / layoutを修正してください。
+
+ただし、
+
+- template
+- references
+- inputs/sales_analysis.xlsx
+- その他の既存ユーザーinput
+
+は変更しないでください。
+
+既存component / layoutを変更する場合は、今回だけの場当たり的な修正ではなく、既存sampleや他layoutへの副作用がないことをunittestで確認してください。
+
+# 完了条件
+
+以下を満たすところまで進めてください。
+
+- Excelの事実・数値だけを使用している
+- 5〜7枚程度でストーリーが成立している
+- 各slideに明確なmessageがある
+- 既存layout / componentを再利用している
+- 今回用slides JSONが新規作成されている
+- PowerPointがoutputs/へ生成されている
+- templateのfixed element / reserved areaを保護している
+- validator ERROR=0
+- unittestが成功している
+- 生成PPTXを再オープンできる
+- Native Render / Visual QAは利用可能な範囲で実行されている
+- Excel、template、references、既存ユーザーinputを変更していない
+
+最後に、以下だけ簡潔に報告してください。
+
+- 使用したExcel sheet
+- 作成したスライド構成
+- 作成したslides JSONのpath
+- 生成したPPTXのpath
+- validator結果
+- unittest結果
+- Native Render / Visual QA status
+- 残っているWARNINGまたは手動確認事項</pre>
+      </div>
+      <p class="note"><strong>使い方:</strong> 毎回04・05を再実行する必要はありません。入力ファイル名、資料の目的、対象読者、枚数、出力ファイル名を今回の案件に合わせて変更し、既存project rootでAgent modeへ貼り付けます。</p>
+      <p class="note"><strong>入力資料:</strong> 売上実績、KPI、顧客一覧、課題一覧、アンケートなど今回の資料で使う事実はinputs/へ置きます。references/は見た目・情報設計の参考であり、今回の事実データとは分離して扱います。</p>
+    </section>
+
     <div class="product-heading" id="excel">
       <span class="label">Excel Foundation</span>
       <h2>Excel生成基盤</h2>
