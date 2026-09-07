@@ -1109,7 +1109,7 @@ DADSはPowerPointのVisual IdentityではなくDesign System原則の参考で�
     </section>
 
     <section aria-labelledby="qa-prompt-title">
-      <div class="section-head"><div class="num">05</div><div><h2 id="qa-prompt-title">生成品質・Visual QA強化</h2><p>初期構築済みのPowerPoint生成基盤を対象に、Safe Drawing、Structural QA、PowerPoint Native Render、Visual QAを追加して見た目の崩れを減らします。</p></div></div>
+      <div class="section-head"><div class="num">05</div><div><h2 id="qa-prompt-title">生成品質・Visual QA強化</h2><p>初期構築済みのPowerPoint生成基盤を対象に、Safe Drawing、Structural QA、PowerPoint Native Render、Visual QAを追加し、後方互換性と回帰比較を保ちながら見た目の崩れを減らします。</p></div></div>
       <div class="prompt-shell">
         <div class="prompt-bar"><span>copilot-visual-qa-hardening-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('qa-prompt', this)">全文をコピー</button></div>
         <pre class="prompt" id="qa-prompt">あなたは、既存のpython-pptxベースのPowerPoint生成基盤について、「生成品質・Visual QA」を強化するエンジニアです。
@@ -1140,7 +1140,34 @@ design/design_spec.mdを設計仕様の正本とします。
 
 巨大な新frameworkへ作り直してはいけません。新しいvisual_validator.py、layer_manager.py等は、既存ファイルでは合理的に実現できない明確な理由がない限り追加しないでください。
 
-# 2. Safe Drawing
+## 後方互換性
+
+既存のlayout_id、既存Data Contract、既存slides.jsonからの生成互換性を原則として維持してください。
+
+Visual QA改善のためだけに公開interfaceを安易に変更しないでください。
+変更が不可避な場合は、可能な限り旧形式も読み取れる互換処理を優先し、変更理由、影響範囲、移行方法をdesign/design_spec.mdへ記録してください。
+
+既存の正常なsample、layout、componentを壊して品質改善を達成したことにしてはいけません。
+
+# 2. Baseline / 回帰比較
+
+改修前に、既存sampleまたは今回の問題を再現できるstress sampleを一度生成してください。
+
+改修前の同一入力について、最低限以下をbaselineとして記録してください。
+
+- 対象input
+- 生成PPTX
+- validator ERROR数
+- validator WARNING数
+- Native Render可否
+- 可能な場合は生成PNG
+- 既知の見た目上の問題
+
+改修後は同一inputから再生成し、baselineとafterを比較してください。
+
+改善確認のために、入力内容そのものを簡単にしたり、問題を再現する要素を削除したりしてはいけません。
+
+# 3. Safe Drawing
 
 ## Filled Shape + Text
 背景色を持つcard、panel、labelなどに文字を載せる場合は、可能な限り別TextBoxを重ねず、そのAutoShape自身のtext_frameを使用してください。
@@ -1162,7 +1189,7 @@ TextBoxおよびShape内部のmargin/paddingはtheme.pyのSpacing Tokenまたは
 ## Parent Box
 componentはlayoutから与えられたBox内部だけを描画することを原則とし、Box外へ描画するのはarrow、annotation等の明確な例外だけにしてください。
 
-# 3. Layer / z-order
+# 4. Layer / z-order
 
 Shape追加順がz-orderへ影響することを前提に、論理Layerを採用してください。
 
@@ -1176,7 +1203,7 @@ Shape追加順がz-orderへ影響することを前提に、論理Layerを採用
 
 可能な範囲で生成ShapeにPPTGEN|L10|card|001、PPTGEN|L30|text|001、PPTGEN|L40|callout|001のようなデバッグ可能なnameを設定してください。
 
-# 4. geometry.pyのQA強化
+# 5. geometry.pyのQA強化
 
 既存のBox / SlideGridを維持しながら、必要に応じて以下を追加してください。
 
@@ -1190,7 +1217,7 @@ Shape追加順がz-orderへ影響することを前提に、論理Layerを採用
 
 geometry.pyを汎用layout engineへ拡張しないでください。
 
-# 5. Structural Validator
+# 6. Structural Validator
 
 既存のERROR / WARNING方式を維持してvalidator.pyを強化してください。
 
@@ -1221,7 +1248,20 @@ WARNING候補：
 
 誤検知が多い検査をERRORにしないでください。完了条件はERROR=0とし、WARNINGが存在しても生成失敗にしないでください。
 
-# 6. Text Overflow
+## 品質基準の弱体化禁止
+
+ERROR=0やunittest成功を達成するために、次を行ってはいけません。
+
+- validator閾値を不必要に緩める
+- 問題のある検査を削除・無効化する
+- failing testを理由なくskipへ変更する
+- stress caseやbaseline inputを簡単な内容へ変更する
+- overlap除外対象を広げすぎる
+- 最小フォントサイズや文字量上限を、問題を隠す目的で変更する
+
+検査基準や閾値を変更する必要がある場合は、変更前後の値、変更理由、影響範囲をoutputs/qa/qa_report.mdへ記録してください。
+
+# 7. Text Overflow
 
 auto-sizeやfit_textだけへ依存しないでください。
 
@@ -1236,7 +1276,7 @@ Data Contract上の文字量検査、display unitによる概算、BoxとTypogra
 
 極端なフォント縮小は禁止します。必要であればunicodedata.east_asian_width()を利用して構いません。
 
-# 7. PowerPoint Native Render
+# 8. PowerPoint Native Render
 
 新しくtools/render_slides.pyを追加してください。
 
@@ -1251,9 +1291,13 @@ WindowsかつMicrosoft PowerPointが利用可能な場合は、OS標準機能と
 
 PowerPointが利用できない環境では失敗を偽装せず、Native Render unavailableとして明確に報告してください。
 
+Native Renderを実現するために、Officeのセキュリティ設定、OSのセキュリティ設定、組織ポリシー、マクロセキュリティ、スクリプト実行ポリシー等を変更してはいけません。
+
+現在の権限・設定で利用できない場合は、設定変更で回避せずNative Render unavailableとして処理してください。
+
 必要に応じて別のレンダラーをfallbackとして検討して構いませんが、Microsoft PowerPointによるRenderを最終確認の正本としてください。
 
-# 8. QA Report
+# 9. QA Report
 
 validatorとrenderの結果をoutputs/qa/qa_report.mdへ記録してください。
 
@@ -1266,10 +1310,17 @@ validatorとrenderの結果をoutputs/qa/qa_report.mdへ記録してください
 - PNG生成枚数
 - 目視確認推奨slide
 - 残存WARNING
+- Visual QA status
+
+Visual QA statusは次の3値のいずれかにしてください。
+
+- PASS
+- REVIEW_REQUIRED
+- NOT_AVAILABLE
 
 Visual QAを完全自動化したと偽装しないでください。
 
-# 9. Visual QA運用
+# 10. Visual QA運用
 
 PNG生成後は以下を確認します。
 
@@ -1286,9 +1337,16 @@ PNG生成後は以下を確認します。
 
 Visual QAではブランドやlayoutを自由に再設計せず、「壊れているか」「読みづらいか」「構造上の明確な問題があるか」を中心に確認してください。
 
+Visual QAは、生成PNGが画像入力としてモデルへ実際に渡され、画像内容を確認できた場合だけPASSまたはREVIEW_REQUIREDと判定してください。
+
+PNGファイルがworkspaceに存在するだけ、またはPNG生成に成功しただけで「Visual QA実施済み」としてはいけません。
+
+画像入力として確認できない環境では、Visual QA statusをNOT_AVAILABLEとしてください。
+画像入力は可能だが人間またはモデルによる追加確認が必要な場合はREVIEW_REQUIREDとしてください。
+
 画像入力対応のCopilot modelを利用できる場合は、生成PNGをChatへ添付してレビューできるようREADME.mdへ手順を記載してください。
 
-# 10. 回帰テスト用サンプル
+# 11. 回帰テスト用サンプル
 
 既存sample inputを壊さず、問題を再現しやすいstress caseを追加してください。
 
@@ -1304,7 +1362,7 @@ Visual QAではブランドやlayoutを自由に再設計せず、「壊れて�
 
 既存ユーザーinputは変更せず、必要ならsample inputを新規作成してください。
 
-# 11. Tests
+# 12. Tests
 
 unittestを更新し、最低限以下を確認してください。
 
@@ -1322,7 +1380,7 @@ unittestを更新し、最低限以下を確認してください。
 
 Native Render機能が利用できない環境でもunittest全体が失敗しないよう、環境依存テストは適切にskipしてください。
 
-# 12. Documentation
+# 13. Documentation
 
 design/design_spec.mdへSafe Drawing、Layer、Structural QA、Native Render、Visual QA、Text Overflow、ERROR / WARNING判定を追記してください。
 
@@ -1337,7 +1395,7 @@ design/design_spec.mdへSafe Drawing、Layer、Structural QA、Native Render、V
 
 README.mdにはgenerate → structural validation → PowerPoint native render → visual reviewのQA手順を記載してください。
 
-# 13. 実装順序
+# 14. 実装順序
 
 Step 1：現行architectureと問題のあるcomponent/layoutを確認する。
 Step 2：Safe Drawingをcomponents.pyへ実装する。
@@ -1352,10 +1410,23 @@ Step 8：PNGとStructural QA結果を確認し、明らかな問題があればc
 
 Step 9：unittestを実行し失敗を修正する。
 Step 10：design_spec、copilot-instructions、READMEを更新する。
+Step 11：git diffまたは同等の差分確認を行う。
 
-# 14. 完了条件
+最終差分で以下を確認してください。
+
+- 今回のVisual QA改善と無関係な変更がない
+- 不要なdependency追加がない
+- 既存API / Data Contractの意図しない変更がない
+- template、references、既存ユーザーinputが変更されていない
+- テストを通すためだけの品質基準弱体化がない
+
+不要な変更があれば元に戻してから完了してください。
+
+# 15. 完了条件
 
 - 既存architectureを壊していない
+- 既存layout_id、Data Contract、slides.jsonの後方互換性が原則維持されている
+- 同一inputによるbaselineとafterの比較が記録されている
 - filled shape + textが安全な構造になっている
 - 独立TextBoxが意図せず白背景を持たない
 - Layerの描画順が明確
@@ -1366,9 +1437,11 @@ Step 10：design_spec、copilot-instructions、READMEを更新する。
 - 生成PPTXをpython-pptxで再度開ける
 - PowerPoint利用可能時は各slideのPNGが生成
 - outputs/qa/qa_report.mdが生成
+- Visual QA statusがPASS / REVIEW_REQUIRED / NOT_AVAILABLEのいずれかで明記されている
 - unittest成功
 - 既存template、references、ユーザーinputを変更していない
 - design_spec、copilot-instructions、READMEが更新済み
+- 最終diffで無関係な変更や品質基準の不当な弱体化がない
 
 最も重要なのは、Visual QAで毎回問題を見つけて直すことではありません。まずSafe DrawingとStructural QAによって「壊れたスライドを作りにくくする」ことを優先し、そのうえでPowerPoint Native Renderを最終品質確認として利用してください。</pre>
       </div>
