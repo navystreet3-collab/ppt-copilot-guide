@@ -1108,6 +1108,274 @@ DADSはPowerPointのVisual IdentityではなくDesign System原則の参考で�
       <p class="note"><strong>Design System:</strong> デジタル庁デザインシステム（DADS）v2.17.1のDesign Token、Typography、Spacing、Grid、Semantic Color、Component、Accessibilityの考え方を、PowerPoint向けに再構成して参考利用します。DADSのWeb UIやVisual Identityを直接模倣するものではありません。</p>
     </section>
 
+    <section aria-labelledby="qa-prompt-title">
+      <div class="section-head"><div class="num">05</div><div><h2 id="qa-prompt-title">生成品質・Visual QA強化</h2><p>初期構築済みのPowerPoint生成基盤を対象に、Safe Drawing、Structural QA、PowerPoint Native Render、Visual QAを追加して見た目の崩れを減らします。</p></div></div>
+      <div class="prompt-shell">
+        <div class="prompt-bar"><span>copilot-visual-qa-hardening-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('qa-prompt', this)">全文をコピー</button></div>
+        <pre class="prompt" id="qa-prompt">あなたは、既存のpython-pptxベースのPowerPoint生成基盤について、「生成品質・Visual QA」を強化するエンジニアです。
+
+今回は新しい基盤を作り直さず、現在workspaceに存在するdesign/design_spec.md、design/reference_analysis.md、.github/copilot-instructions.md、pptxgen/theme.py、pptxgen/geometry.py、pptxgen/components.py、pptxgen/renderer.py、pptxgen/validator.py、pptxgen/layouts/、tests/、generate.py、README.mdを確認し、既存architectureを維持したまま見た目の崩れを減らしてください。
+
+説明だけで終了せず、実際にファイルを修正し、サンプル生成、検証、テストまで実行してください。
+
+# 目的
+
+特に以下の問題を構造的に減らします。
+
+- 色付き図形の上に白背景TextBoxが重なり、下の図形を隠す
+- Shape追加順による意図しないz-order
+- 図形が別の図形に隠れて欠けて見える
+- TextBoxや文字のはみ出し
+- card内部padding不足
+- sibling要素同士の意図しない重なり
+- python-pptx上では正常でもPowerPoint描画時に崩れる問題
+
+改善は、Safe Drawing → Structural QA → PowerPoint Native Render → Visual QA の4段階で実施してください。
+
+# 1. 既存設計を保護する
+
+design/design_spec.mdを設計仕様の正本とします。
+
+既存のDesign Token、12-column logical Grid、geometry、components、layouts、Data Contract、LAYOUT_REGISTRY、validatorのERROR / WARNING、三菱電機Visual Identity、DADSを参考にしたDesign System原則を維持してください。
+
+巨大な新frameworkへ作り直してはいけません。新しいvisual_validator.py、layer_manager.py等は、既存ファイルでは合理的に実現できない明確な理由がない限り追加しないでください。
+
+# 2. Safe Drawing
+
+## Filled Shape + Text
+背景色を持つcard、panel、labelなどに文字を載せる場合は、可能な限り別TextBoxを重ねず、そのAutoShape自身のtext_frameを使用してください。
+
+悪い構造：
+- colored rectangle
+- その上にwhite filled textbox
+
+推奨：
+- colored rectangle
+  - rectangle自身のtext_frame
+
+## 独立TextBox
+独立TextBoxは、明示的な理由がない限りno fill / no lineを既定値にしてください。意図しない白背景で下のShapeを隠さないようにします。
+
+## Padding
+TextBoxおよびShape内部のmargin/paddingはtheme.pyのSpacing Tokenまたは専用Tokenから取得し、layout/component内で場当たり的な値を増やさないでください。
+
+## Parent Box
+componentはlayoutから与えられたBox内部だけを描画することを原則とし、Box外へ描画するのはarrow、annotation等の明確な例外だけにしてください。
+
+# 3. Layer / z-order
+
+Shape追加順がz-orderへ影響することを前提に、論理Layerを採用してください。
+
+- L00：slide background
+- L10：panel / card / container
+- L20：chart / image / diagram
+- L30：text / label
+- L40：arrow / callout / annotation
+
+複雑なz-order制御frameworkは作らず、まずはbackground → structure → content → annotationの順にShapeを追加してください。
+
+可能な範囲で生成ShapeにPPTGEN|L10|card|001、PPTGEN|L30|text|001、PPTGEN|L40|callout|001のようなデバッグ可能なnameを設定してください。
+
+# 4. geometry.pyのQA強化
+
+既存のBox / SlideGridを維持しながら、必要に応じて以下を追加してください。
+
+- inset()
+- contains()
+- intersects()
+- intersection_area()
+- overlap_ratio()
+
+追加ライブラリは使わず単純な矩形計算で実装し、child Boxのcontainment、sibling overlap、slide外へのはみ出し判定に使ってください。
+
+geometry.pyを汎用layout engineへ拡張しないでください。
+
+# 5. Structural Validator
+
+既存のERROR / WARNING方式を維持してvalidator.pyを強化してください。
+
+ERROR候補：
+- Shapeがslide領域外へはみ出す
+- child要素がparent/content Boxから重大にはみ出す
+- 最小フォントサイズ違反
+- 確実に判定できるtext/background contrast不足
+- slides.jsonの禁止design field
+- 未知layout
+- required field不足
+- 生成PPTXを再度開けない
+- opaqueなfilled TextBoxが別の重要Shapeを大きく覆う
+- 意図しない大きなsibling overlap
+- 文字量が明らかにBox収容上限を超える
+
+WARNING候補：
+- 小さなoverlap
+- padding不足
+- title/bodyが長い
+- 情報密度が高い
+- Box収容上限に近い
+- contrastを正確に判定できない
+- arrow / annotation等を含む重なり
+- Native Render後に目視確認した方がよい要素
+
+親containerと内部要素、background、arrow、annotation、decoration等の意図的な重なりは可能な範囲で除外してください。
+
+誤検知が多い検査をERRORにしないでください。完了条件はERROR=0とし、WARNINGが存在しても生成失敗にしないでください。
+
+# 6. Text Overflow
+
+auto-sizeやfit_textだけへ依存しないでください。
+
+Data Contract上の文字量検査、display unitによる概算、BoxとTypography Tokenからの収容能力概算を使い、overflow予想時はERRORまたはWARNINGとしてください。
+
+優先順位：
+1. 内容の要約
+2. layout内の構造整理
+3. slide分割
+4. spacingの小幅調整
+5. 最小フォントを守った範囲の小幅な文字サイズ調整
+
+極端なフォント縮小は禁止します。必要であればunicodedata.east_asian_width()を利用して構いません。
+
+# 7. PowerPoint Native Render
+
+新しくtools/render_slides.pyを追加してください。
+
+目的は、生成したPPTXをMicrosoft PowerPoint自身でレンダリングし、各slideをPNGとしてoutputs/qa/へ書き出すことです。
+
+WindowsかつMicrosoft PowerPointが利用可能な場合は、OS標準機能とPowerPointの提供機能を利用して実装してください。追加ライブラリは必要性が明確な場合だけ導入してください。
+
+出力例：
+- outputs/qa/slide_001.png
+- outputs/qa/slide_002.png
+- outputs/qa/slide_003.png
+
+PowerPointが利用できない環境では失敗を偽装せず、Native Render unavailableとして明確に報告してください。
+
+必要に応じて別のレンダラーをfallbackとして検討して構いませんが、Microsoft PowerPointによるRenderを最終確認の正本としてください。
+
+# 8. QA Report
+
+validatorとrenderの結果をoutputs/qa/qa_report.mdへ記録してください。
+
+最低限：
+- 対象PPTX
+- slide数
+- validator ERROR数
+- validator WARNING数
+- Native Render成功 / 失敗
+- PNG生成枚数
+- 目視確認推奨slide
+- 残存WARNING
+
+Visual QAを完全自動化したと偽装しないでください。
+
+# 9. Visual QA運用
+
+PNG生成後は以下を確認します。
+
+- 意図しない白背景TextBox
+- colored shapeの欠け
+- text overflow
+- 不自然なShape overlap
+- alignment
+- margin
+- internal padding
+- 極端な空白
+- 極端な情報密度
+- chart / label / annotationの衝突
+
+Visual QAではブランドやlayoutを自由に再設計せず、「壊れているか」「読みづらいか」「構造上の明確な問題があるか」を中心に確認してください。
+
+画像入力対応のCopilot modelを利用できる場合は、生成PNGをChatへ添付してレビューできるようREADME.mdへ手順を記載してください。
+
+# 10. 回帰テスト用サンプル
+
+既存sample inputを壊さず、問題を再現しやすいstress caseを追加してください。
+
+最低限：
+- brand colorのfilled card + white text
+- 長めの日本語本文
+- two_column
+- three_column
+- process
+- KPI
+- chart_insight
+- arrow / annotation
+
+既存ユーザーinputは変更せず、必要ならsample inputを新規作成してください。
+
+# 11. Tests
+
+unittestを更新し、最低限以下を確認してください。
+
+- Box.contains()
+- Box.intersects()
+- overlap_ratio()
+- no-fill TextBoxの既定動作
+- filled cardが自身のtext_frameを利用できる
+- parent Box外への重大overflow検出
+- 不正なopaque overlap検出
+- 意図的overlapが誤ってERRORにならない代表ケース
+- validator ERROR=0
+- sample PPTX生成
+- 生成PPTX再オープン
+
+Native Render機能が利用できない環境でもunittest全体が失敗しないよう、環境依存テストは適切にskipしてください。
+
+# 12. Documentation
+
+design/design_spec.mdへSafe Drawing、Layer、Structural QA、Native Render、Visual QA、Text Overflow、ERROR / WARNING判定を追記してください。
+
+.github/copilot-instructions.mdには詳細全文をコピーせず、最低限次を既存指示へ統合してください。
+
+- filled shape上の文字は原則shape自身のtext_frame
+- 独立TextBoxは原則no-fill / no-line
+- Layer順を守る
+- componentはparent Box内を基本とする
+- validator ERROR=0
+- Native Renderが利用可能ならVisual QAを実施する
+
+README.mdにはgenerate → structural validation → PowerPoint native render → visual reviewのQA手順を記載してください。
+
+# 13. 実装順序
+
+Step 1：現行architectureと問題のあるcomponent/layoutを確認する。
+Step 2：Safe Drawingをcomponents.pyへ実装する。
+Step 3：geometry.pyへ矩形QA機能を追加する。
+Step 4：validator.pyを強化する。
+Step 5：stress sampleを生成しStructural QAを実行する。
+Step 6：tools/render_slides.pyを追加する。
+Step 7：PowerPoint Native Renderが利用可能ならPNGを生成する。
+Step 8：PNGとStructural QA結果を確認し、明らかな問題があればcomponent/layoutを修正する。
+
+自動修正・再生成ループは最大2回程度とし、無制限に繰り返さないでください。2回で解決できない問題はqa_report.mdへ残してください。
+
+Step 9：unittestを実行し失敗を修正する。
+Step 10：design_spec、copilot-instructions、READMEを更新する。
+
+# 14. 完了条件
+
+- 既存architectureを壊していない
+- filled shape + textが安全な構造になっている
+- 独立TextBoxが意図せず白背景を持たない
+- Layerの描画順が明確
+- Boxのcontainment / intersection検査ができる
+- validatorのERROR / WARNINGが適切に分離
+- stress sampleでvalidator ERROR=0
+- sample PPTXが正常生成
+- 生成PPTXをpython-pptxで再度開ける
+- PowerPoint利用可能時は各slideのPNGが生成
+- outputs/qa/qa_report.mdが生成
+- unittest成功
+- 既存template、references、ユーザーinputを変更していない
+- design_spec、copilot-instructions、READMEが更新済み
+
+最も重要なのは、Visual QAで毎回問題を見つけて直すことではありません。まずSafe DrawingとStructural QAによって「壊れたスライドを作りにくくする」ことを優先し、そのうえでPowerPoint Native Renderを最終品質確認として利用してください。</pre>
+      </div>
+      <p class="note"><strong>使い方:</strong> 04で初期構築したPowerPoint生成基盤のproject rootをVS Codeで開き、GitHub CopilotのAgent modeへ上記全文を貼り付けます。現在の崩れたスライドや同等のstress caseを残しておくと、改善前後を回帰確認しやすくなります。</p>
+      <p class="note"><strong>推奨順序:</strong> Safe Drawing → Structural QA → PowerPoint Native Render → Visual QA の順で強化します。PowerPointが利用できない環境ではNative Renderを偽装せず、利用不可として記録します。</p>
+    </section>
+
     <div class="product-heading" id="excel">
       <span class="label">Excel Foundation</span>
       <h2>Excel生成基盤</h2>
