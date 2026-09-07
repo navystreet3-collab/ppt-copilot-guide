@@ -183,7 +183,7 @@
         <article class="role" data-mark="IGN"><code>.gitignore</code><p>仮想環境、キャッシュ、生成した.pptxをGit対象外にする。</p></article>
         <article class="role" data-mark="COP"><code>.github/copilot-instructions.md</code><p>設計の要点をGitHub Copilotへ常時適用する短いルール。</p></article>
         <article class="role" data-mark="AST"><code>assets/</code><p>スライドで使用する画像・アイコンを格納。フォントファイルの同梱は前提にしない。</p></article>
-        <article class="role" data-mark="TPL"><code>template/</code><p>スライドマスター、ロゴ、フッターなど生成時の土台。元ファイルは上書きしない。</p></article>
+        <article class="role" data-mark="TPL"><code>template/</code><p>背景、マスター、ロゴ、フッターなどを保持する生成の土台。色・書体・本文レイアウトの正本にはしない。</p></article>
         <article class="role" data-mark="REF"><code>references/</code><p>参考にするPDFやPPTXを読み取り専用で置き、構造と見た目を分析。</p></article>
         <article class="role" data-mark="ANA"><code>design/reference_analysis.md</code><p>参考資料から確認した共通ルール、差異、確認できなかった制約を記録。</p></article>
         <article class="role" data-mark="SPEC"><code>design/design_spec.md</code><p>設計仕様の正本。変更時は先に更新し、theme.pyとテストを同期。</p></article>
@@ -218,7 +218,7 @@
     </section>
 
     <section aria-labelledby="prompt-title">
-      <div class="section-head"><div class="num">04</div><div><h2 id="prompt-title">Copilotに渡す初期構築プロンプト</h2><p>Agent modeで、参考資料・三菱電機のVisual Identity・DADS v2.17.1の設計原則を統合し、再利用可能なPowerPoint生成基盤を構築する実践版です。</p></div></div>
+      <div class="section-head"><div class="num">04</div><div><h2 id="prompt-title">Copilotに渡す初期構築・更新プロンプト</h2><p>新規構築にも既存基盤の差分アップグレードにも使える実践版です。既存フォルダやreferencesを保護しながら、会社テンプレートを「生成の土台」として扱う設計へ更新します。</p></div></div>
       <div class="prompt-shell">
         <div class="prompt-bar"><span>copilot-foundation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('prompt', this)">全文をコピー</button></div>
         <pre class="prompt" id="prompt">あなたは、python-pptxを使って高品質なPowerPoint資料を自動生成するための「PowerPoint生成基盤」を、現在のworkspace内に実際に構築するエンジニアです。
@@ -262,6 +262,9 @@
 - 既存ファイルを上書きすると影響があるか
 
 既存実装がある場合は、全面破棄せず、今回のarchitectureへ安全に統合してください。
+すでにこのプロンプトの旧版を実行済みで、pptxgen/、design/、tests/、references/等が存在する場合は「新規構築」ではなく差分アップグレードとして扱ってください。
+既存のフォルダ構成を理由なく作り直したり、references/内の資料を移動・改名・再配置したりしないでください。
+既存のreference_analysis.mdがあり、referencesの内容が変わっていない場合は、必要な差分だけ確認し、全資料の再分析を強制しないでください。
 既存のCopilot/Agent向けinstructionがある場合は、今回のPowerPointルールで全面置換せず、競合を確認して既存ルールを保持しながら統合してください。
 
 技術的に実行不能、または結果を大きく左右する重大な情報欠落がある場合だけ停止してください。
@@ -573,9 +576,10 @@ component側はstyle=WHITE_PANELのように利用し、背景色と文字色を
 
 フォントウェイトはRegularとBoldを中心にしてください。
 DADSのNoto Sans JP自体を必須にしません。
-template、references、実行環境で利用可能なフォントを優先し、日本語フォールバック候補をtheme.pyへ定義してください。
+生成コンテンツのフォントはdesign_spec.md / theme.pyを正本とし、referencesと実行環境で利用可能なフォントを踏まえて日本語フォールバック候補をtheme.pyへ定義してください。
+template内のフォント設定を、生成コンテンツのTypographyへ自動取り込みしないでください。template由来の固定要素に既存フォントが使われている場合は、その固定要素を変更せず保持してください。
 
-フォントサイズはtemplateとreferencesの分析結果を優先し、スライドごとに自由なサイズを作らないでください。
+フォントサイズはreferencesとPowerPoint上の可読性を基準に設計し、スライドごとに自由なサイズを作らないでください。
 
 ## Spacing
 3〜5段階程度のモジュラースケールを定義してください。
@@ -588,7 +592,8 @@ template、references、実行環境で利用可能なフォントを優先し�
 - SPACE_XL
 
 DADSの8 CSS pxという値をPowerPointへ直接コピーしないでください。
-PowerPointの16:9固定キャンバス、文字サイズ、template、referencesをもとに適切な値へ変換してください。
+PowerPointの固定キャンバス、文字サイズ、referencesをもとに適切な値へ変換してください。
+template内の既存余白やplaceholder配置を、生成基盤のSpacing Tokenへ自動取り込みしないでください。
 
 同じ意味の要素には同じspacingを適用してください。
 関連が強い要素ほど近く、異なる情報グループほど大きく離してください。
@@ -625,18 +630,56 @@ geometry.pyを巨大なlayout engineにしないでください。
 # 9. templateとreferences
 
 ## template
-template/consulting_template.pptxが存在する場合は生成の土台として利用してください。
 
-可能な範囲で継承：
+template/consulting_template.pptxが存在する場合は、「Design Systemの情報源」ではなく「生成先PowerPointの土台（rendering substrate）」として利用してください。
+
+templateから原則として継承・保護するもの：
 - slide size
-- master
-- existing layout
+- slide master / background
 - logo
 - footer
-- font
-- ブランド必須要素
+- legal text
+- その他の明確な固定要素
+
+templateから生成コンテンツのDesign Systemへ自動取り込みしないもの：
+- theme color
+- font / typography
+- spacing
+- card style
+- content placeholderの座標
+- 既存本文layout
+- template内のサンプル本文デザイン
+
+生成するshape、text、chartの色・Typography・Spacing・Grid・Surface Styleはdesign/design_spec.mdとtheme.pyを正本として明示的に適用してください。
+
+templateに複数のslide layoutがある場合は、master/backgroundを維持でき、不要なplaceholderが最も少ないneutral / blank相当のlayoutをbase layoutとして1つ選び、その選択理由をdesign_spec.mdへ記録してください。
+templateの既存2カラム等のcontent layoutとpptxgen/layouts/を二重管理しないでください。
+
+templateの背景がmaster/layout由来か、特定の既存slide上に直接置かれたshape/image由来かをPreflightで確認してください。
+master/layout由来なら通常の継承対象とします。
+slide-levelの背景しか存在せず、安全に継承できない場合は、複雑なshape cloneやXML操作を新規実装して無理に再現せず、Template inheritance: LIMITED としてdesign_spec.mdとREADME.mdへ制約を記録してください。
+
+design/design_spec.md内にTemplate Contractを設け、少なくとも次を記録してください。
+- template path
+- slide size
+- selected base layout
+- fixed elements
+- reserved areas
+- content safe area
+- inherited elements
+- Design Systemへ取り込まない要素
+- background origin（master / layout / slide-level / unknown）
+
+reserved areaは、logo、footer、legal text等の「生成コンテンツで覆ってはいけない固定要素」だけに限定してください。
+背景色帯や装飾図形を機械的にreserved areaへ含めないでください。
+
+Template Contractのためだけにtemplate_manager.py、template_parser.py、template_contract.py等の新しいsubsystemを作らないでください。既存のdesign_spec.md、theme.py、geometry.py、renderer.pyで必要最小限に実装してください。
+
+templateの解析は初期構築時またはtemplateが変更された時だけ行い、通常の資料生成のたびに再解析しないでください。
 
 templateが存在しない場合は白紙の16:9プレゼンテーションから生成してください。
+
+会社テンプレートが.potxの場合は、そのファイルを自動変換・改変しようとせず、PowerPointで.pptxとして保存した作業用コピーをtemplate/へ置く必要があることを報告してください。
 
 ## references
 references/は分析用の見本です。生成ベースとして直接利用しません。
@@ -930,6 +973,9 @@ design_spec.mdを設計仕様の正本としてください。
 - Accessibility
 - ValidatorのERROR / WARNING
 - template / referencesの扱い
+- Template Contract（templateが存在する場合）
+- reserved area / content safe area
+- template background origin
 - フォントfallback
 - 参考資料から確認した事項との関係
 
@@ -953,6 +999,9 @@ DADSそのものを再現しているのではなく、PowerPoint向けに再解
 - 文字量超過時はフォント縮小よりslide分割を優先する
 - PowerPoint上で個別編集できる状態を維持する
 - template/、references/、inputs/を変更しない
+- templateはrendering substrateであり、生成コンテンツのDesign Systemの情報源にしない
+- 生成コンテンツのstyleはdesign_spec.md / theme.pyから明示的に適用する
+- template由来のfixed element / reserved areaを生成componentで覆わない
 - 生成後はvalidatorとunittestを実行する
 - validatorはERROR=0を必須とし、WARNINGは内容を確認する
 
@@ -962,15 +1011,18 @@ design_spec.mdの全文をコピーしないでください。
 
 ## Step 1：Preflight
 workspace、Python、依存関係、template、references、inputs、既存実装を確認する。
+旧版04を実行済みの場合は既存構造を維持し、差分アップグレードとして扱う。
+templateがある場合はbackground origin、neutral / blank相当のbase layout、fixed elementsを確認する。
 
 ## Step 2：Reference Analysis
-利用可能なreferencesを分析する。
-PDFの視覚分析が可能なら代表ページを確認する。
-PPTXがある場合は機械分析する。
-結果をreference_analysis.mdへ記録する。
+reference_analysis.mdとreferencesの現在状態を確認する。
+referencesが既存で内容も変わっていない場合は、必要な差分確認だけ行い、同じ資料の全件再分析を繰り返さない。
+新規・変更されたreferencesがある場合だけ、必要な代表ページを追加分析する。
+結果をreference_analysis.mdへ追記・更新する。
 
 ## Step 3：Design Spec
-このプロンプト、template、reference_analysis、DADS原則を統合し、design_spec.mdを作成する。
+このプロンプト、既存design_spec、reference_analysis、DADS原則を統合し、design_spec.mdを新規作成または差分更新する。
+templateが存在する場合はTemplate Contractを記録し、templateをDesign Systemの情報源として扱わない。
 
 この時点で重大な矛盾がなければ承認待ち停止せず進む。
 
@@ -1056,6 +1108,9 @@ README.mdへ最低限記載：
 - validator ERROR=0
 - unittest成功
 - 既存のinputs/template/references非変更
+- 既存referencesの移動・改名・再配置がない
+- templateが存在する場合はTemplate Contractとselected base layoutがdesign_spec.mdに記録されている
+- 生成コンテンツがtemplateのfixed element / reserved areaを覆っていない
 - 生成したPPTXなどの成果物がoutputs/以外へ保存されていない
 - __pycache__、.pyc、テスト用cacheなど通常の実行時一時ファイルは成果物扱いしない
 - design_specと実装の整合
@@ -1082,6 +1137,10 @@ README.mdへ最低限記載：
 - 意図しない重大な重なりがない
 - 背景と文字に十分なcontrastがある
 - template/、references/、既存のinputsユーザーファイルが変更されていない
+- 既存referencesの移動・改名・再配置が行われていない
+- templateが存在する場合、Template Contractがdesign_spec.mdに記録されている
+- template由来のfixed element / reserved areaが生成コンテンツで覆われていない
+- 生成コンテンツのcolor / typography / spacingがtemplateから暗黙継承されずtheme.py / design_spec.mdで管理されている
 - slides.jsonが存在しない場合に限り、初期検証用のinputs/sample_slides.jsonが新規作成されている
 - design/reference_analysis.mdが存在する
 - design/design_spec.mdが存在する
@@ -1102,9 +1161,12 @@ validatorは明確な不具合をERROR、判断余地のあるものをWARNING�
 DADSはPowerPointのVisual IdentityではなくDesign System原則の参考です。
 三菱電機のブランド表現、PowerPoint固有の情報設計、DADSの一貫性・アクセシビリティ原則を役割分担させてください。
 
+会社templateは「背景・master・固定要素を保持する生成の土台」であり、生成コンテンツの色・font・spacing・content layoutを決めるDesign Systemではありません。
+templateの見た目を自動解析して再現するのではなく、templateを保護した上でdesign_spec.md / theme.py / geometry.py / components / layoutsのルールで内容を描画してください。
+
 最も重要なのは、「Copilotがその都度自由にスライドを描く」のではなく、「決められたDesign System、Grid、components、layout library、Data Contractを再利用して資料を生成する」状態を完成させることです。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> VS Codeで対象フォルダを開き、GitHub CopilotのAgent modeまたは同等の自律実行環境へ上記全文を貼り付けます。三菱電機の代表PDFをreferences/へ3〜6資料置き、視覚分析させる場合は画像入力対応モデルを使用し、必要に応じて対象PDFをChatにも添付してください。</p>
+      <p class="note"><strong>使い方:</strong> 新規構築では対象フォルダをVS Codeで開いて実行します。旧版04をすでに実行済みの場合も同じproject rootで再実行でき、既存フォルダとreferencesを維持したまま差分アップグレードする指示になっています。会社テンプレートを使う場合は.pptxをtemplate/へ置き、referencesは現在の場所から動かさないでください。</p>
       <p class="note"><strong>Design System:</strong> デジタル庁デザインシステム（DADS）v2.17.1のDesign Token、Typography、Spacing、Grid、Semantic Color、Component、Accessibilityの考え方を、PowerPoint向けに再構成して参考利用します。DADSのWeb UIやVisual Identityを直接模倣するものではありません。</p>
     </section>
 
@@ -1137,8 +1199,10 @@ DADSはPowerPointのVisual IdentityではなくDesign System原則の参考で�
 design/design_spec.mdを設計仕様の正本とします。
 
 既存のDesign Token、12-column logical Grid、geometry、components、layouts、Data Contract、LAYOUT_REGISTRY、validatorのERROR / WARNING、三菱電機Visual Identity、DADSを参考にしたDesign System原則を維持してください。
+design_spec.mdにTemplate Contractが存在する場合は、そのfixed elements、reserved areas、content safe area、selected base layoutも既存契約として維持してください。
 
 巨大な新frameworkへ作り直してはいけません。新しいvisual_validator.py、layer_manager.py等は、既存ファイルでは合理的に実現できない明確な理由がない限り追加しないでください。
+Template QAのためだけにtemplate_manager.py、template_parser.py、template_validator.py等のsubsystemを追加しないでください。
 
 ## 後方互換性
 
@@ -1164,8 +1228,10 @@ Visual QA改善のためだけに公開interfaceを安易に変更しないで�
 - 既知の見た目上の問題
 
 改修後は同一inputから再生成し、baselineとafterを比較してください。
+templateを使用している場合は、baselineとafterで必ず同一templateを使用してください。
 
 改善確認のために、入力内容そのものを簡単にしたり、問題を再現する要素を削除したりしてはいけません。
+templateを意図的に差し替えた場合は過去baselineと直接比較せず、新しいtemplateでbaselineを取り直してください。
 
 # 3. Safe Drawing
 
@@ -1223,6 +1289,7 @@ geometry.pyを汎用layout engineへ拡張しないでください。
 
 ERROR候補：
 - Shapeがslide領域外へはみ出す
+- Template Contractで明確にreserved areaと定義されたlogo、footer、legal text等を通常の生成componentが重大に覆う
 - child要素がparent/content Boxから重大にはみ出す
 - 最小フォントサイズ違反
 - 確実に判定できるtext/background contrast不足
@@ -1235,6 +1302,7 @@ ERROR候補：
 - 文字量が明らかにBox収容上限を超える
 
 WARNING候補：
+- template由来か生成由来か、またreserved対象かを確実に判定できない要素との重なり
 - 小さなoverlap
 - padding不足
 - title/bodyが長い
@@ -1260,6 +1328,17 @@ ERROR=0やunittest成功を達成するために、次を行ってはいけま�
 - 最小フォントサイズや文字量上限を、問題を隠す目的で変更する
 
 検査基準や閾値を変更する必要がある場合は、変更前後の値、変更理由、影響範囲をoutputs/qa/qa_report.mdへ記録してください。
+
+## Template保護
+
+Visual QAやStructural QAの問題を解消するためにtemplateファイルそのものを編集・加工してはいけません。
+
+問題の修正対象は原則としてtheme.py、geometry.py、components.py、layouts/、renderer.py、validator.pyとします。
+
+template由来のbackground、logo、footer、legal text、固定装飾は原則として意図された固定要素とみなし、Visual QAの自動修正対象にしないでください。
+templateそのものに問題があるように見える場合は変更せず、qa_report.mdへ「template側の確認事項」として報告してください。
+
+decorative backgroundをreserved areaとして過剰に扱わないでください。reserved areaはTemplate Contractで明確に指定された固定要素を基本とします。
 
 # 7. Text Overflow
 
@@ -1336,6 +1415,7 @@ PNG生成後は以下を確認します。
 - chart / label / annotationの衝突
 
 Visual QAではブランドやlayoutを自由に再設計せず、「壊れているか」「読みづらいか」「構造上の明確な問題があるか」を中心に確認してください。
+template由来のbackground、logo、footer、fixed decorationを「不要な余白・不要な図形」と判断して削除・移動しないでください。
 
 Visual QAは、生成PNGが画像入力としてモデルへ実際に渡され、画像内容を確認できた場合だけPASSまたはREVIEW_REQUIREDと判定してください。
 
@@ -1383,6 +1463,7 @@ Native Render機能が利用できない環境でもunittest全体が失敗し�
 # 13. Documentation
 
 design/design_spec.mdへSafe Drawing、Layer、Structural QA、Native Render、Visual QA、Text Overflow、ERROR / WARNING判定を追記してください。
+Template Contractがある場合はreserved area / content safe areaのQAルールも追記してください。
 
 .github/copilot-instructions.mdには詳細全文をコピーせず、最低限次を既存指示へ統合してください。
 
@@ -1390,6 +1471,9 @@ design/design_spec.mdへSafe Drawing、Layer、Structural QA、Native Render、V
 - 独立TextBoxは原則no-fill / no-line
 - Layer順を守る
 - componentはparent Box内を基本とする
+- templateは編集しない
+- templateはrendering substrateであり、生成コンテンツのstyle sourceにしない
+- Template Contractのreserved areaを生成componentで覆わない
 - validator ERROR=0
 - Native Renderが利用可能ならVisual QAを実施する
 
@@ -1397,7 +1481,7 @@ README.mdにはgenerate → structural validation → PowerPoint native render �
 
 # 14. 実装順序
 
-Step 1：現行architectureと問題のあるcomponent/layoutを確認する。
+Step 1：現行architecture、Template Contract、問題のあるcomponent/layoutを確認する。既存referencesは現在位置のまま保持し、今回のQA強化のために移動・再配置しない。
 Step 2：Safe Drawingをcomponents.pyへ実装する。
 Step 3：geometry.pyへ矩形QA機能を追加する。
 Step 4：validator.pyを強化する。
@@ -1418,6 +1502,8 @@ Step 11：git diffまたは同等の差分確認を行う。
 - 不要なdependency追加がない
 - 既存API / Data Contractの意図しない変更がない
 - template、references、既存ユーザーinputが変更されていない
+- 既存referencesの移動・改名・再配置がない
+- baselineとafterで同一templateが使われている（templateを使用する場合）
 - テストを通すためだけの品質基準弱体化がない
 
 不要な変更があれば元に戻してから完了してください。
@@ -1427,6 +1513,8 @@ Step 11：git diffまたは同等の差分確認を行う。
 - 既存architectureを壊していない
 - 既存layout_id、Data Contract、slides.jsonの後方互換性が原則維持されている
 - 同一inputによるbaselineとafterの比較が記録されている
+- template使用時は同一input + 同一templateでbaselineとafterを比較している
+- Template Contractで定義されたreserved areaが通常の生成componentで重大に覆われていない
 - filled shape + textが安全な構造になっている
 - 独立TextBoxが意図せず白背景を持たない
 - Layerの描画順が明確
@@ -1440,12 +1528,14 @@ Step 11：git diffまたは同等の差分確認を行う。
 - Visual QA statusがPASS / REVIEW_REQUIRED / NOT_AVAILABLEのいずれかで明記されている
 - unittest成功
 - 既存template、references、ユーザーinputを変更していない
+- 既存referencesを移動・改名・再配置していない
+- template由来のfixed elementをVisual QAの都合で削除・移動していない
 - design_spec、copilot-instructions、READMEが更新済み
 - 最終diffで無関係な変更や品質基準の不当な弱体化がない
 
 最も重要なのは、Visual QAで毎回問題を見つけて直すことではありません。まずSafe DrawingとStructural QAによって「壊れたスライドを作りにくくする」ことを優先し、そのうえでPowerPoint Native Renderを最終品質確認として利用してください。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> 04で初期構築したPowerPoint生成基盤のproject rootをVS Codeで開き、GitHub CopilotのAgent modeへ上記全文を貼り付けます。現在の崩れたスライドや同等のstress caseを残しておくと、改善前後を回帰確認しやすくなります。</p>
+      <p class="note"><strong>使い方:</strong> 04実行済みの既存project rootをそのままVS Codeで開いて実行します。現在のフォルダ構成、references、template、ユーザーinputを維持したまま差分強化します。崩れたスライドや同等のstress caseを残しておくと、同一input＋同一templateで改善前後を回帰確認できます。</p>
       <p class="note"><strong>推奨順序:</strong> Safe Drawing → Structural QA → PowerPoint Native Render → Visual QA の順で強化します。PowerPointが利用できない環境ではNative Renderを偽装せず、利用不可として記録します。</p>
     </section>
 
