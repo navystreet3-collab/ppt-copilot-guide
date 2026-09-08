@@ -270,6 +270,39 @@
 既存のreference_analysis.mdがあり、referencesの内容が変わっていない場合は、必要な差分だけ確認し、全資料の再分析を強制しないでください。
 既存のCopilot/Agent向けinstructionがある場合は、今回のPowerPointルールで全面置換せず、競合を確認して既存ルールを保持しながら統合してください。
 
+## Existing Customization Protection
+
+このprojectは、過去の基盤構築後にユーザーが独自のカスタマイズを追加している可能性があります。
+
+既存実装とこのプロンプトの標準形との差異を、すべて「修正すべき逸脱」と判断してはいけません。
+意図的な既存カスタマイズは、このプロンプトの標準形へ戻すことより優先して保持してください。
+
+特に以下は、今回の要件との直接的な競合、再現可能な不具合、重大な品質問題がない限り維持してください。
+
+- 独自layout
+- 独自component
+- theme / Design Token / Typography / spacingの調整値
+- Data Contractの追加項目や互換拡張
+- renderer / validator / geometryの独自拡張
+- 独自の命名規則
+- sample / testの追加ケース
+- README / design_spec / copilot-instructionsへ追加されたルール
+- その他、既存project内で利用されている意図的な実装
+
+変更前に、今回影響を受けそうな既存差分・拡張を確認し、少なくとも内部的に次のどれで扱うか決めてから実装してください。
+
+- PRESERVE：そのまま保持する
+- EXTEND：既存カスタマイズを残したまま今回要件を追加する
+- MODIFY：今回要件との直接競合または不具合解消のため最小限変更する
+
+判断が曖昧で、今回の要件を満たすために変更する必要がない場合はPRESERVEを既定としてください。
+標準形へ揃えるためだけのrename、再配置、API変更、値の戻し、refactorは禁止します。
+
+MODIFYが必要な場合も、全面置換より既存カスタマイズへ今回要件を統合する方法を優先し、変更理由と影響範囲をdesign/design_spec.mdまたは最終報告へ記録してください。
+
+このCustomization確認だけを理由に実行を停止してユーザーへ確認を求めないでください。
+既存コード、design_spec、tests、README、使用箇所から意図を合理的に推定できる範囲では、PRESERVE優先で最後まで進めてください。
+
 技術的に実行不能、または結果を大きく左右する重大な情報欠落がある場合だけ停止してください。
 それ以外の軽微な不足や差異は、後述の優先順位に従って妥当な判断で進め、判断理由をdesign/design_spec.mdへ記録してください。
 
@@ -282,11 +315,16 @@ inputs/slides.jsonが存在する場合は変更しないでください。存�
 
 デザインや実装方針が競合する場合は、次の順に優先してください。
 
-1. このプロンプトおよびユーザーが明示した要件
-2. template/に含まれるブランド必須要素
-3. 三菱電機公式referencesに共通して確認できるVisual Identity
-4. デジタル庁デザインシステム（DADS）v2.17.1から採用するDesign System原則
-5. コンサルティング資料としての一般的な情報設計原則
+1. 今回ユーザーが明示した要件
+2. 意図的な既存カスタマイズと、現在のprojectで有効に機能している既存仕様
+3. このプロンプトが示す標準architecture / 標準値（既存仕様がない領域のdefault）
+4. template/に含まれるブランド必須要素
+5. 三菱電機公式referencesに共通して確認できるVisual Identity
+6. デジタル庁デザインシステム（DADS）v2.17.1から採用するDesign System原則
+7. コンサルティング資料としての一般的な情報設計原則
+
+このプロンプト内の色、layout数、Token構成、命名等の標準値は、既存カスタマイズを標準形へ戻すための強制値ではありません。
+既存仕様が今回要件を満たしている場合は維持し、不足部分だけを補ってください。
 
 この順位で解決できる差異については確認を求めず進めてください。
 templateとreferencesの差異、採用した判断、確認できなかった事項はdesign/reference_analysis.mdまたはdesign/design_spec.mdへ記録してください。
@@ -1033,6 +1071,8 @@ design_spec.mdの全文をコピーしないでください。
 ## Step 1：Preflight
 workspace、Python、依存関係、template、references、inputs、既存実装を確認する。
 旧版04を実行済みの場合は既存構造を維持し、差分アップグレードとして扱う。
+今回触れる可能性がある既存の独自layout、component、theme値、Data Contract、renderer / validator拡張、tests、instructionsを確認し、PRESERVE / EXTEND / MODIFYの扱いを決める。
+標準形との差異だけを理由にMODIFYへ分類しない。
 templateがある場合はbackground origin、neutral / blank相当のbase layout、fixed elementsを確認する。
 
 ## Step 2：Reference Analysis
@@ -1130,6 +1170,8 @@ README.mdへ最低限記載：
 - unittest成功
 - 既存のinputs/template/references非変更
 - 既存referencesの移動・改名・再配置がない
+- 意図的な既存カスタマイズが、標準形へ揃える目的だけで削除・置換・renameされていない
+- MODIFYした既存カスタマイズがある場合、変更理由と影響範囲が確認できる
 - templateが存在する場合はTemplate Contractとselected base layoutがdesign_spec.mdに記録されている
 - 生成コンテンツがtemplateのfixed element / reserved areaを覆っていない
 - 生成したPPTXなどの成果物がoutputs/以外へ保存されていない
@@ -1143,7 +1185,9 @@ README.mdへ最低限記載：
 
 - PowerPoint生成基盤のファイル一式が実際に作成されている
 - theme / geometry / components / layouts / rendererの責務が分離されている
-- 原則7種類の初期layoutが存在する
+- 意図的な既存カスタマイズが保持され、今回要件は可能な限りEXTENDとして統合されている
+- 既存に独自layout構成がある場合はそれを標準7layoutへ戻すためだけの変更をしていない
+- 新規構築の場合は原則7種類の初期layoutが存在する
 - LAYOUT_REGISTRYが存在する
 - 各layoutにData Contractが定義されている
 - slides.jsonに直接的なdesign指定が含まれていない
@@ -1187,7 +1231,7 @@ templateの見た目を自動解析して再現するのではなく、template�
 
 最も重要なのは、「Copilotがその都度自由にスライドを描く」のではなく、「決められたDesign System、Grid、components、layout library、Data Contractを再利用して資料を生成する」状態を完成させることです。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> 新規構築では対象フォルダをVS Codeで開いて実行します。旧版04をすでに実行済みの場合も同じproject rootで再実行でき、既存フォルダとreferencesを維持したまま差分アップグレードする指示になっています。会社テンプレートを使う場合は.pptxをtemplate/へ置き、referencesは現在の場所から動かさないでください。</p>
+      <p class="note"><strong>使い方:</strong> 新規構築では対象フォルダをVS Codeで開いて実行します。旧版04をすでに実行済みの場合も同じproject rootで再実行でき、既存フォルダ・references・意図的な独自カスタマイズを保持したまま差分アップグレードする指示になっています。会社テンプレートを使う場合は.pptxをtemplate/へ置き、referencesは現在の場所から動かさないでください。</p>
       <p class="note"><strong>Design System:</strong> デジタル庁デザインシステム（DADS）v2.17.1のDesign Token、Typography、Spacing、Grid、Semantic Color、Component、Accessibilityの考え方を、PowerPoint向けに再構成して参考利用します。DADSのWeb UIやVisual Identityを直接模倣するものではありません。</p>
     </section>
 
@@ -1234,12 +1278,33 @@ Visual QA改善のためだけに公開interfaceを安易に変更しないで�
 
 既存の正常なsample、layout、componentを壊して品質改善を達成したことにしてはいけません。
 
+## Existing Customization Protection
+
+このprojectに存在する独自layout、component、theme / Token調整、Data Contract拡張、renderer / validator / geometryの独自処理、tests、instructions等は、標準05との差異だけを理由に変更してはいけません。
+
+Visual QA改善では、意図的な既存カスタマイズを標準形へ戻すことより、既存カスタマイズを保持したまま安全性を追加することを優先してください。
+
+変更前に、今回影響を受ける既存カスタマイズを確認し、内部的に次のいずれかへ分類してください。
+
+- PRESERVE：変更不要
+- EXTEND：既存挙動を残してSafe Drawing / QAを追加
+- MODIFY：再現可能な描画不具合または今回要件との直接競合を解消するため最小限変更
+
+判断が曖昧で今回のQA改善に必須でない場合はPRESERVEとしてください。
+標準05へ揃えるためだけの値の変更、rename、API変更、layout削除、component置換、refactorは禁止します。
+
+MODIFYする場合も、既存カスタマイズを全面置換せず、最小差分で修正してください。
+その変更が他のsample / layoutへ副作用を与えないことを回帰テストで確認してください。
+
+この分類のためだけにユーザー確認で停止せず、既存コード、design_spec、tests、README、使用箇所から意図を合理的に推定し、PRESERVE優先で進めてください。
+
 # 2. Baseline / 回帰比較
 
 改修前に、既存sampleまたは今回の問題を再現できるstress sampleを一度生成してください。
 
 改修前の同一入力について、最低限以下をbaselineとして記録してください。
 
+- 今回影響を受ける既存カスタマイズとPRESERVE / EXTEND / MODIFYの扱い
 - 対象input
 - 生成PPTX
 - validator ERROR数
@@ -1492,6 +1557,7 @@ Template Contractがある場合はreserved area / content safe areaのQAルー�
 - 独立TextBoxは原則no-fill / no-line
 - Layer順を守る
 - componentはparent Box内を基本とする
+- 意図的な既存カスタマイズを標準形へ戻さず、QA要件は原則EXTENDで統合する
 - templateは編集しない
 - templateはrendering substrateであり、生成コンテンツのstyle sourceにしない
 - Template Contractのreserved areaを生成componentで覆わない
@@ -1502,7 +1568,7 @@ README.mdにはgenerate → structural validation → PowerPoint native render �
 
 # 14. 実装順序
 
-Step 1：現行architecture、Template Contract、問題のあるcomponent/layoutを確認する。既存referencesは現在位置のまま保持し、今回のQA強化のために移動・再配置しない。
+Step 1：現行architecture、Template Contract、問題のあるcomponent/layoutを確認する。今回影響を受ける既存カスタマイズをPRESERVE / EXTEND / MODIFYへ分類し、標準形との差異だけを理由に変更対象へしない。既存referencesは現在位置のまま保持し、今回のQA強化のために移動・再配置しない。
 Step 2：Safe Drawingをcomponents.pyへ実装する。
 Step 3：geometry.pyへ矩形QA機能を追加する。
 Step 4：validator.pyを強化する。
@@ -1522,6 +1588,9 @@ Step 11：git diffまたは同等の差分確認を行う。
 - 今回のVisual QA改善と無関係な変更がない
 - 不要なdependency追加がない
 - 既存API / Data Contractの意図しない変更がない
+- 独自layout / component / theme値 / Data Contract拡張等が標準形へ戻されていない
+- PRESERVEとしたカスタマイズが変更されていない
+- MODIFYしたカスタマイズがある場合は、再現可能な不具合または直接競合を解消するための最小差分になっている
 - template、references、既存ユーザーinputが変更されていない
 - 既存referencesの移動・改名・再配置がない
 - baselineとafterで同一templateが使われている（templateを使用する場合）
@@ -1532,6 +1601,8 @@ Step 11：git diffまたは同等の差分確認を行う。
 # 15. 完了条件
 
 - 既存architectureを壊していない
+- 意図的な既存カスタマイズが標準形より優先して保持されている
+- 今回要件は可能な限り既存カスタマイズへのEXTENDとして統合されている
 - 既存layout_id、Data Contract、slides.jsonの後方互換性が原則維持されている
 - 同一inputによるbaselineとafterの比較が記録されている
 - template使用時は同一input + 同一templateでbaselineとafterを比較している
@@ -1556,7 +1627,7 @@ Step 11：git diffまたは同等の差分確認を行う。
 
 最も重要なのは、Visual QAで毎回問題を見つけて直すことではありません。まずSafe DrawingとStructural QAによって「壊れたスライドを作りにくくする」ことを優先し、そのうえでPowerPoint Native Renderを最終品質確認として利用してください。</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> 04実行済みの既存project rootをそのままVS Codeで開いて実行します。現在のフォルダ構成、references、template、ユーザーinputを維持したまま差分強化します。崩れたスライドや同等のstress caseを残しておくと、同一input＋同一templateで改善前後を回帰確認できます。</p>
+      <p class="note"><strong>使い方:</strong> 04実行済みの既存project rootをそのままVS Codeで開いて実行します。現在のフォルダ構成、references、template、ユーザーinputに加え、独自layout・component・theme調整等の意図的なカスタマイズも保持したまま差分強化します。崩れたスライドや同等のstress caseを残しておくと、同一input＋同一templateで改善前後を回帰確認できます。</p>
       <p class="note"><strong>推奨順序:</strong> Safe Drawing → Structural QA → PowerPoint Native Render → Visual QA の順で強化します。PowerPointが利用できない環境ではNative Renderを偽装せず、利用不可として記録します。</p>
       <p class="note"><strong>範囲:</strong> 05は描画・Structural QA・Visual QAの強化に限定します。元資料からの情報抽出、主張設計、ストーリー、論理レビューは06で扱い、05へ混在させません。</p>
     </section>
