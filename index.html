@@ -160,7 +160,10 @@
 │   ├── <span class="file">validator.py</span>
 │   └── <span class="dir">layouts/</span>
 ├── <span class="dir">inputs/</span>
-│   └── <span class="file">slides.json</span>
+│   ├── <span class="file">slides.json</span>
+│   ├── <span class="file">source_01.xlsx</span>
+│   ├── <span class="file">source_02.pptx</span>
+│   └── <span class="file">source_03.md</span>
 ├── <span class="dir">tests/</span>
 │   └── <span class="file">test_generation.py</span>
 ├── <span class="dir">outputs/</span>
@@ -168,7 +171,7 @@
 └── <span class="file">generate.py</span></pre>
         <div class="principles">
           <div class="principle"><strong>templateとreferencesを保護する</strong><span>生成の土台と分析用の見本は読み取り専用とし、出力先と分ける。</span></div>
-          <div class="principle"><strong>PDFを基本にPPTXで補完</strong><span>見た目の視覚分析と、可能な場合の構造分析を組み合わせる。</span></div>
+          <div class="principle"><strong>情報源とデザイン参考を分ける</strong><span>今回の事実・判断材料はinputs/、見た目・情報設計の参考はreferences/として扱う。</span></div>
           <div class="principle"><strong>内容とデザインを分ける</strong><span>入力には内容だけを置き、色・書体・配置は基盤側で管理する。</span></div>
           <div class="principle"><strong>標準機能で検証する</strong><span>テストはunittestを使い、追加依存を最小限にする。</span></div>
         </div>
@@ -184,17 +187,17 @@
         <article class="role" data-mark="COP"><code>.github/copilot-instructions.md</code><p>設計の要点をGitHub Copilotへ常時適用する短いルール。</p></article>
         <article class="role" data-mark="AST"><code>assets/</code><p>スライドで使用する画像・アイコンを格納。フォントファイルの同梱は前提にしない。</p></article>
         <article class="role" data-mark="TPL"><code>template/</code><p>背景、マスター、ロゴ、フッターなどを保持する生成の土台。色・書体・本文レイアウトの正本にはしない。</p></article>
-        <article class="role" data-mark="REF"><code>references/</code><p>参考にするPDFやPPTXを読み取り専用で置き、構造と見た目を分析。</p></article>
+        <article class="role" data-mark="REF"><code>references/</code><p>見た目・情報設計を学ぶデザイン参考資料。今回の事実・数値・判断の情報源とは分離する。</p></article>
         <article class="role" data-mark="ANA"><code>design/reference_analysis.md</code><p>参考資料から確認した共通ルール、差異、確認できなかった制約を記録。</p></article>
         <article class="role" data-mark="SPEC"><code>design/design_spec.md</code><p>設計仕様の正本。変更時は先に更新し、theme.pyとテストを同期。</p></article>
         <article class="role" data-mark="TOOL"><code>tools/analyze_references.py</code><p>参考PPTXの色、フォントサイズ、座標、図形サイズを機械分析。</p></article>
-        <article class="role" data-mark="IN"><code>inputs/slides.json</code><p>文章、数値、画像パス、layout_idなど内容だけを記述。生成処理からは変更しない。</p></article>
+        <article class="role" data-mark="IN"><code>inputs/</code><p>今回の資料内容の情報源（Excel、PPTX、md、txt、PDF等）とslides JSONを置く。元資料は読み取り専用。</p></article>
         <article class="role" data-mark="UI"><code>pptxgen/theme.py</code><p>色、書体、文字サイズ、間隔、semantic styleを一元管理。</p></article>
         <article class="role" data-mark="GEO"><code>pptxgen/geometry.py</code><p>Boxと12カラム論理Gridを扱い、themeの余白・gutterから主要領域の座標を計算。</p></article>
         <article class="role" data-mark="CMP"><code>pptxgen/components.py</code><p>指定領域へ統一された部品を描画し、低レベルAPIを隠蔽。</p></article>
         <article class="role" data-mark="LYT"><code>pptxgen/layouts/</code><p>座標と領域配置、layout固有の情報量上限を管理。</p></article>
         <article class="role" data-mark="TST"><code>tests/test_generation.py</code><p>標準のunittestで生成、layout解決、validator結果を確認。</p></article>
-        <article class="role" data-mark="OUT"><code>outputs/</code><p>生成したPowerPointを新しいファイルとして保存する場所。.gitkeepのみ管理対象。</p></article>
+        <article class="role" data-mark="OUT"><code>outputs/</code><p>生成PowerPointと、Evidence・Story・Slide Planなど今回作業の一時成果物を保存。ユーザー入力は置かない。</p></article>
       </div>
     </section>
 
@@ -214,7 +217,7 @@
         <article class="role" data-mark="＋"><a href="https://www.mitsubishielectric.co.jp/investors/data/integrated-report/pdf/2025/integrated-report2025-jp.pdf" target="_blank" rel="noopener noreferrer"><code>統合報告書2025</code></a><p>ブランド表現と図解の補助資料。冊子レイアウトの直用は避ける。</p></article>
         <article class="role" data-mark="↗"><a href="https://www.mitsubishielectric.co.jp/investors/data/management-report/" target="_blank" rel="noopener noreferrer"><code>IR Day公式一覧</code></a><p>リンク切れや更新時に後継資料を確認するための一覧。</p></article>
       </div>
-      <p class="note"><strong>推奨:</strong> 01の新中期経営戦略を含む3〜6資料を目安に、要約・比較・プロセス・グラフなど異なる表現を確認できる資料を選んでください。資料数より代表性を優先します。公開資料はPDFのみでも構いません。手元に参考PPTXがある場合は、同じreferences/へ追加すると座標やフォントサイズの機械分析もできます。</p>
+      <p class="note"><strong>推奨:</strong> 01の新中期経営戦略を含む3〜6資料を目安に、要約・比較・プロセス・グラフなど異なる表現を確認できる資料を選んでください。資料数より代表性を優先します。公開資料はPDFのみでも構いません。手元に参考PPTXがある場合は、同じreferences/へ追加すると座標やフォントサイズの機械分析もできます。<strong>今回の資料内容の根拠として使うPPTX・PDFはreferences/ではなくinputs/へ置いてください。</strong></p>
     </section>
 
     <section aria-labelledby="prompt-title">
@@ -377,6 +380,20 @@ marginやgutterの値はtheme.pyを参照してください。
 - line_color
 - その他の直接的なデザイン指定
 
+## Content Planning Boundary
+
+この生成基盤のrendererは、Excel分析エンジンや汎用ドキュメント分析エンジンにはしないでください。
+
+実際の資料作成時は、inputs/に置かれたExcel、PPTX、md、txt、PDF等から必要な情報を読み取り、
+Evidence → Story → Slide Plan → slides JSON
+の順で内容を整理してからrendererへ渡します。
+
+この内容設計workflowは06の資料生成プロンプトで実行します。
+04の初期構築時に、source_reader.py、excel_analyzer.py、story_engine.py、reasoning_engine.py等の新しい巨大subsystemを作らないでください。
+
+references/はVisual Identityや情報設計を学ぶデザイン参考資料です。
+今回の資料で事実・数値・判断材料として使用するファイルはinputs/へ置き、references/と混同しないでください。
+
 # 4. 推奨フォルダ構成
 
 原則として次の構成にしてください。
@@ -415,7 +432,8 @@ ppt-generator/
 │       └── chart_insight.py
 ├── inputs/
 │   ├── slides.json
-│   └── sample_slides.json
+│   ├── sample_slides.json
+│   └── source files (.xlsx / .pptx / .md / .txt / .pdf)
 ├── outputs/
 │   └── .gitkeep
 ├── tests/
@@ -682,7 +700,8 @@ templateが存在しない場合は白紙の16:9プレゼンテーションか�
 会社テンプレートが.potxの場合は、そのファイルを自動変換・改変しようとせず、PowerPointで.pptxとして保存した作業用コピーをtemplate/へ置く必要があることを報告してください。
 
 ## references
-references/は分析用の見本です。生成ベースとして直接利用しません。
+references/はデザイン・情報設計を分析する見本です。生成ベースとして直接利用しません。
+実際の資料内容の根拠となるExcel、PPTX、メモ、PDF等はinputs/で扱い、references/から事実を引く運用を基本にしないでください。
 
 三菱電機公式資料を3〜6資料程度用意することを推奨します。
 資料数より、要約、比較、プロセス、グラフなど異なる表現を代表できることを優先してください。
@@ -999,6 +1018,8 @@ DADSそのものを再現しているのではなく、PowerPoint向けに再解
 - 文字量超過時はフォント縮小よりslide分割を優先する
 - PowerPoint上で個別編集できる状態を維持する
 - template/、references/、inputs/を変更しない
+- references/はデザイン参考、inputs/は今回の資料内容の情報源として区別する
+- input source filesは読み取り専用とし、資料生成のために再保存・書換えしない
 - templateはrendering substrateであり、生成コンテンツのDesign Systemの情報源にしない
 - 生成コンテンツのstyleはdesign_spec.md / theme.pyから明示的に適用する
 - template由来のfixed element / reserved areaを生成componentで覆わない
@@ -1537,28 +1558,45 @@ Step 11：git diffまたは同等の差分確認を行う。
       </div>
       <p class="note"><strong>使い方:</strong> 04実行済みの既存project rootをそのままVS Codeで開いて実行します。現在のフォルダ構成、references、template、ユーザーinputを維持したまま差分強化します。崩れたスライドや同等のstress caseを残しておくと、同一input＋同一templateで改善前後を回帰確認できます。</p>
       <p class="note"><strong>推奨順序:</strong> Safe Drawing → Structural QA → PowerPoint Native Render → Visual QA の順で強化します。PowerPointが利用できない環境ではNative Renderを偽装せず、利用不可として記録します。</p>
+      <p class="note"><strong>範囲:</strong> 05は描画・Structural QA・Visual QAの強化に限定します。元資料からの情報抽出、主張設計、ストーリー、論理レビューは06で扱い、05へ混在させません。</p>
     </section>
 
-    <section aria-labelledby="generation-prompt-title">
-      <div class="section-head"><div class="num">06</div><div><h2 id="generation-prompt-title">実際の資料生成プロンプト</h2><p>04・05で整備した基盤を使い、Excelなどの業務資料から実際のPowerPointを作るための日常運用向けプロンプトです。以下は営業会議資料の例です。</p></div></div>
+        <section aria-labelledby="generation-prompt-title">
+      <div class="section-head"><div class="num">06</div><div><h2 id="generation-prompt-title">Content-first 資料生成プロンプト</h2><p>Excel・PowerPoint・メモ・PDFなどから、既に記載されている事実・課題・判断を根拠付きで拾い、StoryとSlide PlanをレビューしてからPowerPointを生成します。</p></div></div>
       <div class="prompt-shell">
-        <div class="prompt-bar"><span>copilot-presentation-generation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('generation-prompt', this)">全文をコピー</button></div>
-        <pre class="prompt" id="generation-prompt">inputs/sales_analysis.xlsx を主な情報源として、営業会議向けのPowerPointを作成してください。
+        <div class="prompt-bar"><span>copilot-content-first-generation-prompt.txt</span><button class="copy" type="button" onclick="copyPrompt('generation-prompt', this)">全文をコピー</button></div>
+        <pre class="prompt" id="generation-prompt">以下の情報源を使って、PowerPoint資料を作成してください。
 
-# 目的
+# 今回の依頼
 
-売上状況と主要課題を共有し、次の営業アクションを明確にすることです。
+情報源：
+- 【inputs/source_01.xlsx】
+- 【inputs/source_02.pptx】
+- 【inputs/source_03.md】
+※実際に使用するファイルだけ残し、必要に応じて追加してください。
 
-対象読者は営業部長・課長です。
-5〜7枚程度を目安としてください。
+資料の目的：
+【ここに目的を書く】
 
-# 使用する既存基盤
+対象読者：
+【ここに対象読者を書く】
+
+読者に最終的に理解・判断・実行してほしいこと：
+【分かる範囲で書く。未指定なら目的から妥当な範囲で推定する】
+
+枚数目安：
+【例：5〜7枚】
+
+出力ファイル名：
+【例：outputs/project_review.pptx】
+
+# 基本方針
 
 既存のPowerPoint生成基盤を使用してください。
 
-特に以下を正本・再利用対象として扱ってください。
-
+正本・再利用対象：
 - design/design_spec.md
+- design/reference_analysis.md
 - pptxgen/theme.py
 - pptxgen/geometry.py
 - pptxgen/components.py
@@ -1569,92 +1607,364 @@ Step 11：git diffまたは同等の差分確認を行う。
 - Data Contract
 - .github/copilot-instructions.md
 
-新しいPowerPoint生成frameworkを作らず、既存基盤のlayout / componentを再利用してください。
+新しいPowerPoint生成framework、source analysis framework、story engine等を作らないでください。
 
-# template
+今回の作業は、
 
-template/consulting_template.pptx が存在する場合は、design_spec.mdのTemplate Contractに従ってください。
+Source Inspection
+→ Evidence Extraction
+→ Story Design
+→ Slide Plan
+→ Critical Content Review
+→ slides JSON
+→ PowerPoint Generation
+→ Structural / Visual QA
 
-- background / master / fixed elementsを保持する
-- logo / footer / legal text / reserved areaを通常の生成componentで覆わない
-- templateを編集・上書きしない
-- templateを生成コンテンツの色・font・spacing・content layoutのDesign Systemとして自動解析しない
-- 生成コンテンツのstyleはdesign_spec.md / theme.pyを使用する
+の順で進めてください。
 
-Template Contractが未整備の場合は、既存04の設計方針に従い、必要最小限の確認だけ行ってください。
+04・05を毎回再実行する必要はありません。
 
-# references
+# 情報源とreferencesの区別
 
-references/ は既に分析済みのデザイン参考資料として扱ってください。
+inputs/に今回指定したファイルは「資料内容の情報源」です。
+事実、数値、記述、課題、判断、方針、コメント、アクション等は、原則としてここから取得してください。
 
-今回の資料作成のために、
+references/は既に分析済みの「デザイン・情報設計の参考資料」です。
+今回の事実・数値・主張の根拠としてreferences/を勝手に利用しないでください。
 
+references/について今回の資料生成のために、
 - 移動
 - 改名
 - 再配置
 - 全件再分析
 - 再ダウンロード
+を行わないでください。
 
-をしないでください。
+# Source Protection
 
-既存のdesign/reference_analysis.mdとdesign/design_spec.mdを優先して使用してください。
-今回の資料作成に不可欠な情報がreference_analysis.mdに存在しない場合だけ、必要最小限の追加確認を行ってください。
+すべての情報源は読み取り専用として扱ってください。
 
-# Excelの扱い
+- 編集しない
+- 上書きしない
+- 再保存しない
+- 移動しない
+- 改名しない
+- 元資料に存在しない事実・数値・決定事項を作らない
 
-inputs/sales_analysis.xlsx は読み取り専用です。
+Web検索や外部情報を追加してはいけません。
+外部情報が必要な場合でも、今回の資料には混ぜず手動確認事項として報告してください。
 
-- 元Excelを編集、保存、上書きしない
-- Excelに存在しない事実・数値を作らない
-- 数値の単位、期間、対象範囲を確認してから使用する
-- 複数sheetがある場合は、最初にsheet名、header、used range等を確認し、資料目的に関係するsheetを優先して分析する
-- 大きなworkbookを無条件に全セル処理しない
-- formulaの計算結果を取得できない場合は推測せず、その制約を明示して対象数値を使用しない
-- openpyxl等を使用する場合も読み取り専用とし、既存の依存管理方針に従う
-- 入力データに矛盾や欠損がある場合は、都合よく補完しない
+# ファイル形式ごとの読み取り方針
 
-致命的でない欠損は、利用可能な事実だけで資料を構成してください。
-資料の結論が変わるほど重大な不足・矛盾がある場合だけ停止して報告してください。
+## Excel
 
-# Step 1：Excel分析
+Excelは「分析対象の生データ」ではなく、既に記載されている結果・数値・管理表・コメント等の情報源として扱ってください。
 
-まずExcelの内容を確認し、今回の資料で使用できる事実・数値・課題を整理してください。
+- 既存セルの値、ラベル、表、コメント、管理項目を読む
+- 既に記載されている集計結果・分析結果は利用してよい
+- ユーザーの明示指示がない限り、新しい集計、統計分析、ランキング、相関分析、予測を行わない
+- raw dataから新しいKPIや傾向を作らない
+- 管理表では行単位の文脈を保ったまま課題・状態・コメント・対応を読む
+- formulaの表示値を取得できない場合は推測しない
+- 数値は単位、期間、対象範囲を可能な限り一緒に保持する
 
-単なる表の転記ではなく、
+## PowerPoint
 
-- 何が重要か
-- 何が変化しているか
-- どこに課題があるか
-- 読者が次に何を判断・実行すべきか
+PPTXは既存スライドの内容を情報源として扱ってください。
+
+可能な範囲で、
+- title
+- body text
+- table
+- chart title / label / accessible value
+- annotation
+- speaker notes（利用可能な場合）
+を確認してください。
+
+レイアウトや色から事実を推測しないでください。
+グラフの値を機械的に取得できない、または画像にしか存在しない場合は、読めたと仮定しないでください。
+
+## Markdown / txt / メモ
+
+見出しや段落の文脈を維持して読み取ってください。
+箇条書きを独立した事実として切り離しすぎず、前後の見出しや条件を保持してください。
+
+## PDF
+
+テキストとして確認できる内容を使用してください。
+画像・スキャン・図表にしか存在しない情報を確認できない場合は、その制約を記録してください。
+
+# 実行を止める条件
+
+一部の情報源や一部要素を技術的に読み取れなくても、利用可能な情報源だけで目的を満たせる場合は止まらず続行してください。
+
+停止するのは次の場合だけです。
+
+- 指定された情報源を1つも利用できない
+- 資料目的を満たすには、存在しない事実を作る必要がある
+- 重大な情報矛盾があり、どちらを採用するかで資料の主要結論が逆転する
+
+それ以外の不足・矛盾・読取制約は明示的に残し、事実として確認できる範囲で最後まで進めてください。
+
+# 作業用成果物
+
+今回の資料ごとに、outputs/work/配下へ新しい作業フォルダを作成してください。
+
+例：
+outputs/work/project_review/
+
+既存フォルダを上書きしないでください。
+同名がある場合は末尾へ番号等を付けて新規作成してください。
+
+作成する中間成果物は原則3つだけです。
+
+- evidence.md
+- story.md
+- slide_plan.json
+
+この3つのために新しいPython frameworkやschema libraryを作らないでください。
+
+# Step 1：Source Inspection
+
+最初に、指定された情報源を確認してください。
+
+evidence.mdの冒頭にSource Coverage表を作り、最低限次を記録してください。
+
+- source file
+- file type
+- 読取可否
+- 確認したsheet / slide / section / page等
+- 今回の目的との関連性
+- 読み取れなかった要素
+- 除外した範囲と理由
+
+大きな資料を無条件に全件精読するのではなく、sheet名、slide title、見出し、目次、表のheader等から関連範囲を特定してください。
+
+ただし早い段階で絞り込みすぎないでください。
+後述のEvidence Extraction後に、重要な見落としがないかSource Coverageをもう一度確認してください。
+
+# Step 2：Evidence Extraction
+
+まず「資料に使うか」を決める前に、今回の目的に関係しそうな情報を広めに抽出してください。
+
+Evidenceは元資料から確認できる内容だけにしてください。
+
+主なtype：
+- FACT：確定事実・数値
+- STATUS：現在状態・進捗
+- ISSUE：課題・問題
+- DECISION：決定済み事項・方針
+- ACTION：予定・対応事項
+- OPINION：担当者コメント・意見・仮説
+- CONSTRAINT：制約・前提
+
+各Evidenceに最低限次を持たせてください。
+
+- Evidence ID（E01, E02...）
+- type
+- statement
+- source file
+- source location
+- context / condition
+- limitation（必要な場合）
+
+例：
+
+E07 [ISSUE]
+営業担当が潜在ニーズを次の提案へどう使うか未整理
+Source: inputs/meeting_notes.md
+Location: 「営業レビュー」節
+Context: PoC抽出後の営業活用について
+
+OPINIONや仮説をFACTへ格上げしてはいけません。
+資料中の「検討中」「予定」「可能性」等を「決定済み」と表現しないでください。
+
+# Step 3：Evidence Coverage Review
+
+Evidenceを抽出した後、各情報源をもう一度確認してください。
+
+特に以下の取りこぼしを確認してください。
+
+- 結論と逆方向の情報
+- 未解決事項
+- 条件・例外
+- 重要なコメント
+- 決定事項
+- 次回アクション
+- 表の末尾や別sheetにある補足
+- 過去資料にある前提
+- 主張を弱める情報
+
+この段階では「作りたいストーリーに合わない」という理由だけでEvidenceを捨てないでください。
+
+情報源間で内容が矛盾する場合はevidence.mdにCONFLICTとして記録してください。
+ユーザーが優先資料を指定していない場合、明示的な日付・版数から新旧が判断できるときのみ新しい情報を優先してよいものとします。
+判断できない場合は勝手に解消しないでください。
+
+# Step 4：Analysis / Claim Design
+
+ここから初めて、Evidenceをもとに「何が言えるか」を整理してください。
+
+資料全体について、
+
+- Main Question
+- Main Answer / Main Message
+- Supporting Point
+- Implication
+- Recommended Action（必要な場合）
 
 を考えてください。
 
-Excelのセル色やExcel上の配置をPowerPointのデザインとして直接再現しないでください。
+Main Questionは、資料の目的と対象読者から「この資料で答えるべき問い」として設定してください。
 
-# Step 2：Slide Plan
+各Claimは次のいずれかとして区別してください。
 
-PowerPointを描画する前に、次を決定してください。
+- FACTUAL CLAIM：Evidenceに直接書かれている
+- SYNTHESIS：複数Evidenceを統合した解釈
+- RECOMMENDATION：Evidenceを踏まえた提案
 
-1. 資料全体のストーリー
-2. 各スライドのtitle
-3. 各スライドのmessage
-4. messageを裏付けるevidence
-5. 使用する既存layout_id
+各ClaimにはEvidence IDを紐付けてください。
 
-5〜7枚程度を目安に、1スライド1メッセージとしてください。
+SYNTHESISは、元資料に直接書かれている事実のように表現してはいけません。
+RECOMMENDATIONは、既存の決定事項のように表現してはいけません。
 
-既存layoutで表現できる場合は、新しいlayoutを追加しないでください。
+相関や同時発生だけから因果関係を断定しないでください。
+原因が資料に明記されていない場合は「要因の可能性」「確認が必要」等、Evidenceの強さに合う表現にしてください。
 
-情報量が多い場合は、文字を極端に小さくせず、内容整理またはスライド分割を優先してください。
+強い結論を支えるEvidenceが不足する場合は、無理に主張を作らず、
+- 表現を弱める
+- 状況確認のメッセージにする
+- 未確認事項として示す
+のいずれかで処理してください。
 
-# Step 3：slides JSON
+# Step 5：Story Design
 
-Slide Planを既存Data Contractへ変換し、今回用のslides JSONを新規ファイルとして作成してください。
+outputs/work/.../story.mdに資料全体の論理構造を作成してください。
+
+最低限：
+
+- Purpose
+- Audience
+- Main Question
+- Main Message
+- Supporting Points
+- Evidence IDs
+- Implications
+- Actions / Decisions
+- Known Gaps / Conflicts
+
+経営・管理職向け資料では原則として結論先行を優先してください。
+ただし、経緯説明、プロセス説明、時系列レビュー等では内容に適した構造を選んでください。
+
+ピラミッド構造は「主張と根拠を整理する道具」として使い、無理にMECEへ押し込まないでください。
+
+「元資料の章順」「Excelの列順」「既存PPTのスライド順」をそのまま新しい資料のストーリーにしないでください。
+
+# Step 6：Slide Plan
+
+story.mdをもとにslide_plan.jsonを作成してください。
+
+各slideに最低限：
+
+- slide number
+- purpose
+- title
+- message
+- evidence_ids
+- layout_id
+- content outline
+- source note
+
+を持たせてください。
+
+1スライド1メッセージを基本とします。
+
+messageの必須条件：
+
+- 単なるテーマではなく、そのスライドで伝える主張になっている
+- 1文で意味が通る
+- Evidenceで裏付けられる
+- 「だから何か」が分かる
+- 前後slideとの論理接続がある
+
+次のようなmessageだけで終わらせないでください。
+
+- 「売上の状況」
+- 「課題について」
+- 「分析結果」
+- 「今後の方向性」
+- 「施策概要」
+
+強い主張を作れない場合は、Evidenceに忠実な事実・状態メッセージにしてください。
+
+既存layoutで表現できる場合は新しいlayoutを追加しないでください。
+内容が入らない場合は、まず情報整理またはslide分割を行い、rendererを変更して解決しないでください。
+
+# Step 7：Critical Content Review
+
+PowerPointを生成する前に、一度作成者の立場から離れ、「この資料の結論を疑うレビュー担当」としてstory.mdとslide_plan.jsonを批判的に確認してください。
+
+最低限確認：
+
+## Source Coverage
+- 重要なsourceを見落としていないか
+- 結論に不都合なEvidenceを除外していないか
+- 条件・例外・未解決事項を落としていないか
+
+## Claim / Evidence
+- 各messageにEvidenceがあるか
+- Evidenceより強い言い方になっていないか
+- OPINIONをFACTとして扱っていないか
+- RecommendationをDecisionとして扱っていないか
+- 因果関係を飛躍していないか
+- 数値・固有名詞・状態が元資料と一致しているか
+
+## Logic
+- Main MessageをSupporting Pointsが本当に支えているか
+- 「AだからB」「BだからC」の間に論理の飛躍がないか
+- 前後slideが単なる話題の羅列になっていないか
+- 同じ主張を複数slideで繰り返していないか
+- 重要な「So What」が欠けていないか
+
+## Audience
+- 対象読者が判断・行動するために必要な情報になっているか
+- 詳細すぎる情報が主張を埋めていないか
+- ActionがEvidenceと課題に接続しているか
+
+Content Reviewの判定：
+
+ERROR：
+- Sourceにない事実・数値
+- factual claimに根拠がない
+- Evidenceとmessageが明確に矛盾
+- unresolved conflictを無視して主要結論を断定
+- Opinion / Recommendation / 未決事項を確定事実として表現
+
+WARNING：
+- messageが弱い・抽象的
+- 論理接続が弱い
+- 代替解釈があり得る
+- Evidence Coverageに不安がある
+- Actionが抽象的
+- 重複slide
+- 因果表現が強すぎる可能性
+
+ERRORがあれば、元資料を変更せずstory / slide planを修正してください。
+修正・再レビューは最大2回程度とし、無限に繰り返さないでください。
+
+解消できない問題はKnown Gaps / Content Warningsとして残してください。
+
+PowerPoint生成へ進む条件はContent ERROR = 0です。
+
+# Step 8：slides JSON
+
+Critical Content Review後のslide_plan.jsonを既存Data Contractへ変換し、今回用のslides JSONを新規作成してください。
 
 既存のinputs/slides.jsonや他のユーザーinputを上書きしないでください。
 
-保存先について既存プロジェクトの慣例がある場合はそれに従ってください。
-明確な慣例がない場合は、inputs/slides_sales_meeting.json のように今回用途が分かる新規ファイル名を使用してください。
+既存慣例がなければ、
+inputs/slides_【案件名】.json
+のように新しいファイル名を使ってください。
 
 slides JSONには内容だけを持たせてください。
 
@@ -1670,32 +1980,36 @@ slides JSONには内容だけを持たせてください。
 - insight
 - source
 - image path
-- layout Data Contractで許可された内容項目
+- 既存Data Contractで許可された内容項目
 
-含めないもの：
-- x / y
-- width / height
-- font_size
-- font_name
-- text_color
-- fill_color
-- line_color
-- その他の直接的なデザイン指定
+Evidence IDをrendererのためだけに新しい必須fieldとして追加しないでください。
+必要な出典は既存のsource field等へ、人間が確認できる簡潔な形で反映してください。
 
-# Step 4：PowerPoint生成
+直接的なdesign fieldは追加しないでください。
 
-作成したslides JSONから既存renderer / layout / componentを使ってPowerPointを生成してください。
+# Step 9：PowerPoint Generation
 
-生成物はoutputs/へ新しいファイル名で保存してください。
+既存renderer / layout / componentを使用してPowerPointを生成してください。
 
-例：
-outputs/sales_meeting.pptx
-
+生成物は指定されたoutputs/配下へ新しいファイルとして保存してください。
 既存生成物を明示的な指示なく上書きしないでください。
 
-# Step 5：品質検証
+今回の内容が既存layoutへ入りにくい場合は、
 
-生成後、既存の品質検証フローを実行してください。
+1. message / contentの整理
+2. slide分割
+3. 既存layoutの別案
+
+を優先してください。
+
+1案件だけの内容都合で、共有component / layout / Data Contractを安易に変更しないでください。
+
+共有基盤を変更するのは、再現可能な描画不具合があり、他の資料でも再利用価値がある場合だけです。
+変更した場合は既存unittestを実行し、副作用を確認してください。
+
+# Step 10：Structural / Visual QA
+
+生成後は既存05の品質検証フローに従ってください。
 
 最低限：
 
@@ -1705,68 +2019,57 @@ outputs/sales_meeting.pptx
 4. 利用可能ならPowerPoint Native Render
 5. 利用可能ならVisual QA
 
-Visual QAでは特に以下を確認してください。
+Visual QAが利用できない場合は、実施済みと偽装せず既存statusルールに従ってください。
 
-- text overflow
-- 意図しないShape overlap
-- colored shapeの欠け
-- 白背景TextBoxによる隠れ
-- alignment
-- margin / padding
-- templateのreserved area侵入
-- chart / label / annotationの衝突
-- 極端な情報密度
+Content QAとVisual QAを混同しないでください。
 
-Visual QAが実行できない場合は、実行したと偽装せず既存のstatusルールに従ってください。
-
-# Step 6：必要な修正
-
-品質上の問題が見つかった場合は、原則として今回のslides JSON、または再利用性がある問題なら既存component / layoutを修正してください。
-
-ただし、
-
-- template
-- references
-- inputs/sales_analysis.xlsx
-- その他の既存ユーザーinput
-
-は変更しないでください。
-
-既存component / layoutを変更する場合は、今回だけの場当たり的な修正ではなく、既存sampleや他layoutへの副作用がないことをunittestで確認してください。
+- 内容の問題 → evidence / story / slide plan / slides JSONを修正
+- 描画の問題 → components / layouts / validator等を必要な範囲で修正
 
 # 完了条件
 
-以下を満たすところまで進めてください。
+以下を満たすところまで、可能な範囲で止まらず進めてください。
 
-- Excelの事実・数値だけを使用している
-- 5〜7枚程度でストーリーが成立している
-- 各slideに明確なmessageがある
-- 既存layout / componentを再利用している
+- 指定された各sourceについて読取可否と確認範囲が記録されている
+- evidence.mdにSource Coverageがある
+- Evidenceがsource locationまで追跡できる
+- sourceにない事実・数値を作っていない
+- raw dataから依頼されていない新しい分析結果を作っていない
+- OPINION / DECISION / ACTION等の状態を混同していない
+- Main QuestionとMain Messageが明確
+- 各主要ClaimにEvidence IDがある
+- 各slide messageが単なるテーマではなく主張になっている
+- Content ERROR = 0
+- Known Gaps / Content Warningsが残る場合は明示されている
+- evidence.md / story.md / slide_plan.jsonがoutputs/work/配下に作成されている
 - 今回用slides JSONが新規作成されている
+- 既存layout / componentを原則再利用している
 - PowerPointがoutputs/へ生成されている
-- templateのfixed element / reserved areaを保護している
-- validator ERROR=0
+- validator ERROR = 0
 - unittestが成功している
 - 生成PPTXを再オープンできる
 - Native Render / Visual QAは利用可能な範囲で実行されている
-- Excel、template、references、既存ユーザーinputを変更していない
+- template、references、inputsの元資料を変更していない
 
 最後に、以下だけ簡潔に報告してください。
 
-- 使用したExcel sheet
-- 作成したスライド構成
-- 作成したslides JSONのpath
-- 生成したPPTXのpath
-- validator結果
-- unittest結果
+- 使用したsourceと読取状況
+- 資料のMain Message
+- スライド構成
+- evidence.md / story.md / slide_plan.jsonのpath
+- slides JSONのpath
+- 生成PPTXのpath
+- Content Review結果
+- validator / unittest結果
 - Native Render / Visual QA status
-- 残っているWARNINGまたは手動確認事項</pre>
+- Known Gaps / Content Warnings / 手動確認事項</pre>
       </div>
-      <p class="note"><strong>使い方:</strong> 毎回04・05を再実行する必要はありません。入力ファイル名、資料の目的、対象読者、枚数、出力ファイル名を今回の案件に合わせて変更し、既存project rootでAgent modeへ貼り付けます。</p>
-      <p class="note"><strong>入力資料:</strong> 売上実績、KPI、顧客一覧、課題一覧、アンケートなど今回の資料で使う事実はinputs/へ置きます。references/は見た目・情報設計の参考であり、今回の事実データとは分離して扱います。</p>
+      <p class="note"><strong>使い方:</strong> 毎回04・05を再実行する必要はありません。冒頭の「情報源・目的・対象読者・枚数・出力ファイル名」だけ案件ごとに書き換え、既存project rootでAgent modeへ貼り付けます。</p>
+      <p class="note"><strong>情報源:</strong> 今回の資料で事実・数値・課題・コメントを拾うExcel、PPTX、md、txt、PDF等はinputs/へ置きます。references/はデザイン参考専用です。Excelは原則として再分析せず、既に記載されている結果・管理表・テキスト・数値を情報源として扱います。</p>
+      <p class="note"><strong>Content QA:</strong> evidence.md → story.md → slide_plan.json を作り、PowerPoint生成前に主張と根拠、論理の飛躍、情報の拾い漏れを批判レビューします。別の巨大分析基盤や追加プロンプトは不要です。</p>
     </section>
 
-    <div class="product-heading" id="excel">
+<div class="product-heading" id="excel">
       <span class="label">Excel Foundation</span>
       <h2>Excel生成基盤</h2>
       <p>用途を1種類に固定せず、データ分析・管理表・業務整理表を共通ルールから作り分けます。PowerPoint版と同じ「三菱電機スタンダード」の配色を使用します。</p>
